@@ -18,7 +18,7 @@ The build is a separate app, so it can sit alongside other NetherSX2 installatio
 
 This started from wanting to squeeze as much real performance as possible out of the Retroid Pocket Nova. The focus is native-resolution playability, reliable frame pacing, and settings that make sense for the device instead of chasing a one-size-fits-all preset.
 
-On the Nova at native resolution, *Shadow of the Colossus* and *Metal Gear Solid 3: Subsistence* can hover around 60 FPS, with heavier moments dipping toward 50 FPS. Results vary with the game area, game version, and individual settings.
+For now, *Shadow of the Colossus* and *Metal Gear Solid 3: Subsistence* will only hit ~60 FPS at native resolution, with heavier moments dipping toward 50 FPS. Results vary with the game area, game version, and individual settings.
 
 ---
 
