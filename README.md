@@ -32,6 +32,10 @@ For now, *Shadow of the Colossus* and *Metal Gear Solid 3: Subsistence* will onl
 
 *Resident Evil 4* and *Resident Evil Code: Veronica* do not currently have working 60 FPS patches in this build. Work on those is ongoing.
 
+### How 60 FPS works
+
+The 60 FPS option uses AetherSX2/PCSX2's existing PNACH cheat-patch system. It does not generate frames or force a game to run twice as fast. For supported games, it enables the matching 60 FPS patch and tuned per-game profile; frame generation remains off. The original NetherSX2 Turnip builds use the same core patch mechanism—the difference here is the included patch and Retroid Pocket Nova-specific profile selection.
+
 ---
 
 ## Shadow of the Colossus
