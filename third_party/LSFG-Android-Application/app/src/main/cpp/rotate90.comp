@@ -1,0 +1,52 @@
+#version 450
+
+/* 90-degree rotation for portrait-native panels.
+ *
+ * The swapchain keeps the panel's NATIVE preTransform so the compositor stays on
+ * its cheap overlay path; that makes the APPLICATION responsible for writing
+ * pre-rotated content, which vkCmdBlitImage cannot do (it scales and flips, it
+ * cannot transpose). This pass does the transpose.
+ *
+ * dir: 1 = 90 CW, 3 = 270 CW (i.e. 90 CCW), 2 = 180.
+ */
+layout(local_size_x = 16, local_size_y = 8, local_size_z = 1) in;
+
+layout(rgba8, set = 0, binding = 0) readonly  uniform image2D srcImg;
+layout(rgba8, set = 0, binding = 1) writeonly uniform image2D dstImg;
+
+/* Deliberately IDENTICAL to gpu_postprocess.comp's block so both pipelines can
+ * share one VkPipelineLayout and descriptor set layout. `method` carries the
+ * rotation direction here. */
+layout(push_constant) uniform Params {
+    int srcW;
+    int srcH;
+    int dstW;
+    int dstH;
+    int method;
+    float sharpness;
+    float strength;
+    float pad0;
+} pc;
+
+void main() {
+    ivec2 d = ivec2(gl_GlobalInvocationID.xy);
+    if (d.x >= pc.dstW || d.y >= pc.dstH) return;
+
+    ivec2 s;
+    if (pc.method == 1) {
+        /* dst(x,y) <- src(y, srcH-1-x) : 90 degrees clockwise */
+        s = ivec2(d.y, pc.srcH - 1 - d.x);
+    } else if (pc.method == 3) {
+        /* 270 clockwise */
+        s = ivec2(pc.srcW - 1 - d.y, d.x);
+    } else {
+        /* 180 */
+        s = ivec2(pc.srcW - 1 - d.x, pc.srcH - 1 - d.y);
+    }
+
+    if (s.x < 0 || s.y < 0 || s.x >= pc.srcW || s.y >= pc.srcH) {
+        imageStore(dstImg, d, vec4(0.0, 0.0, 0.0, 1.0));
+        return;
+    }
+    imageStore(dstImg, d, imageLoad(srcImg, s));
+}

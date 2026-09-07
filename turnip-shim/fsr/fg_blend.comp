@@ -1,0 +1,23 @@
+#version 450
+layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
+
+layout(set = 0, binding = 0, rgba8) uniform readonly image2D g_prev;
+layout(set = 0, binding = 1, rgba8) uniform readonly image2D g_curr;
+layout(set = 0, binding = 2, rgba8) uniform writeonly image2D g_out;
+
+layout(set = 0, binding = 3) uniform FgBlendConstants {
+    float alpha;
+    float flow_scale_unused;
+    uint width;
+    uint height;
+} g_con;
+
+void main() {
+    uvec2 pos = gl_GlobalInvocationID.xy;
+    if (pos.x >= g_con.width || pos.y >= g_con.height)
+        return;
+    ivec2 p = ivec2(pos);
+    vec4 prev = imageLoad(g_prev, p);
+    vec4 curr = imageLoad(g_curr, p);
+    imageStore(g_out, p, mix(prev, curr, g_con.alpha));
+}

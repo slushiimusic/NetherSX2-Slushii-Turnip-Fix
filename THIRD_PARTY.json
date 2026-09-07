@@ -1,0 +1,10 @@
+{
+  "LSFG-Android-Application": {
+    "upstream": "https://github.com/FrankBarretta/LSFG-Android-Application.git",
+    "base_commit": "b84754199823615d32d65fe33ea59481dca88dcf"
+  },
+  "lsfg-vk-android": {
+    "upstream": "https://github.com/FrankBarretta/lsfg-vk-android.git",
+    "base_commit": "3e89e5439a98f55d5acb003d20039426ab24e69c"
+  }
+}

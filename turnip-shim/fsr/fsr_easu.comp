@@ -1,0 +1,36 @@
+#version 450
+#extension GL_GOOGLE_include_directive : require
+
+#define A_GPU 1
+#define A_GLSL 1
+#define A_HALF 1
+#include "vendor/ffx_a.h"
+#define FSR_EASU_H 1
+
+layout(set = 0, binding = 0) uniform sampler2D g_src;
+layout(set = 0, binding = 1, rgba16f) uniform writeonly image2D g_dst;
+layout(set = 0, binding = 2) uniform FsrEasuConstants {
+    uvec4 con0;
+    uvec4 con1;
+    uvec4 con2;
+    uvec4 con3;
+    uvec2 out_size;
+} g_con;
+
+AH4 FsrEasuRH(AF2 p) { return AH4(textureGather(g_src, p, 0)); }
+AH4 FsrEasuGH(AF2 p) { return AH4(textureGather(g_src, p, 1)); }
+AH4 FsrEasuBH(AF2 p) { return AH4(textureGather(g_src, p, 2)); }
+
+#include "vendor/ffx_fsr1.h"
+
+layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
+
+void main() {
+    uvec2 pos = gl_GlobalInvocationID.xy;
+    if (pos.x >= g_con.out_size.x || pos.y >= g_con.out_size.y)
+        return;
+
+    AH3 c;
+    FsrEasuH(c, AU2(pos), g_con.con0, g_con.con1, g_con.con2, g_con.con3);
+    imageStore(g_dst, ivec2(pos), AH4(c, 1.0));
+}

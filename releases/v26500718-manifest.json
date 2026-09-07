@@ -1,0 +1,38 @@
+{
+  "FRAMEGEN": {
+    "file": "NetherSX2-Pink-v26500718-FRAMEGEN.apk",
+    "bytes": 164620166,
+    "sha256": "01bd525f07af646cbcfe20304e144c9d9e73ba47ce5d290715bdfc641da10f72"
+  },
+  "NONFRAMEGEN": {
+    "file": "NetherSX2-Pink-v26500718-NONFRAMEGEN.apk",
+    "bytes": 146270752,
+    "sha256": "81a57cbccbbb2149532d5d708437aba7bf199d9b662b2f0123533262b5bf6398"
+  },
+  "versionCode": 26500718,
+  "versionName": "v26500718",
+  "package": "xyz.aethersx2.cpink02",
+  "certificate": "fd348b18565a795b3812a1a363fa5627c20aa7c31b54fa89bf10212b710ce98b",
+  "variant_differences": [
+    "classes.dex",
+    "res/xml/graphics_game_settings_preferences.xml",
+    "res/xml/graphics_preferences.xml",
+    "lib/arm64-v8a/libvulkad.so",
+    "META-INF/NETHERSX.SF",
+    "META-INF/NETHERSX.RSA",
+    "META-INF/MANIFEST.MF"
+  ],
+  "removed_from_nonframegen": [
+    "lib/arm64-v8a/liblsfg-android.so"
+  ],
+  "all_other_entries_identical": true,
+  "validation": {
+    "shared_host_checks_passed": 8,
+    "nonframegen_checks_passed": 2,
+    "signatures_verified": true,
+    "alignment_verified": true,
+    "old_green_resource_values_removed": true,
+    "nonframegen_native_dependencies_verified": true,
+    "runtime": "Final device check interrupted when Thor disconnected; both final release APKs have not completed on-device gameplay validation."
+  }
+}

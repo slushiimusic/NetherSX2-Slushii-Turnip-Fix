@@ -1,0 +1,12 @@
+*.apk
+*.jks
+*.keystore
+*.so
+*.o
+*.a
+*.dex
+*.jar
+*.spv
+__pycache__/
+.DS_Store
+out/

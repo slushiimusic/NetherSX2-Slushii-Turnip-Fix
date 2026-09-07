@@ -1,0 +1,32 @@
+#version 450
+#extension GL_GOOGLE_include_directive : require
+
+#define A_GPU 1
+#define A_GLSL 1
+#define A_HALF 1
+#include "vendor/ffx_a.h"
+#define FSR_RCAS_H 1
+
+layout(set = 0, binding = 0, rgba16f) uniform readonly image2D g_src;
+layout(set = 0, binding = 1, rgba16f) uniform writeonly image2D g_dst;
+layout(set = 0, binding = 2) uniform FsrRcasConstants {
+    uvec4 con;
+    uvec2 out_size;
+} g_con;
+
+AH4 FsrRcasLoadH(ASW2 p) { return AH4(imageLoad(g_src, ASU2(p))); }
+void FsrRcasInputH(inout AH1 r, inout AH1 g, inout AH1 b) {}
+
+#include "vendor/ffx_fsr1.h"
+
+layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
+
+void main() {
+    uvec2 pos = gl_GlobalInvocationID.xy;
+    if (pos.x >= g_con.out_size.x || pos.y >= g_con.out_size.y)
+        return;
+
+    AH1 r, g, b;
+    FsrRcasH(r, g, b, AU2(pos), g_con.con);
+    imageStore(g_dst, ivec2(pos), AH4(r, g, b, 1.0));
+}

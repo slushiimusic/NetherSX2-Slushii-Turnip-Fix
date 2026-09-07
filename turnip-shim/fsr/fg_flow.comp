@@ -1,0 +1,70 @@
+#version 450
+// Optical-flow warp: block SAD motion search + backward warp.
+// Not ML-based, but much better than a straight alpha-blend.
+layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
+
+layout(set = 0, binding = 0, rgba8) uniform readonly image2D g_prev;
+layout(set = 0, binding = 1, rgba8) uniform readonly image2D g_curr;
+layout(set = 0, binding = 2, rgba8) uniform writeonly image2D g_out;
+
+layout(set = 0, binding = 3) uniform FgFlowConstants {
+    float alpha;       // interpolation phase 0..1 between prev and curr
+    float flow_scale;  // motion search radius scale
+    uint width;
+    uint height;
+} g_con;
+
+vec4 sample_bilinear_prev(vec2 uv, ivec2 dim) {
+    vec2 p = clamp(uv, vec2(0.5), vec2(dim) - vec2(0.5));
+    vec2 f = fract(p);
+    ivec2 i = ivec2(floor(p));
+    vec4 tl = imageLoad(g_prev, i);
+    vec4 tr = imageLoad(g_prev, min(i + ivec2(1, 0), dim - ivec2(1)));
+    vec4 bl = imageLoad(g_prev, min(i + ivec2(0, 1), dim - ivec2(1)));
+    vec4 br = imageLoad(g_prev, min(i + ivec2(1, 1), dim - ivec2(1)));
+    return mix(mix(tl, tr, f.x), mix(bl, br, f.x), f.y);
+}
+
+float block_sad(ivec2 p, ivec2 off, ivec2 dim) {
+    float sad = 0.0;
+    for (int oy = -1; oy <= 1; oy++) {
+        for (int ox = -1; ox <= 1; ox++) {
+            ivec2 q = clamp(p + ivec2(ox, oy), ivec2(0), dim - ivec2(1));
+            ivec2 r = clamp(p + off + ivec2(ox, oy), ivec2(0), dim - ivec2(1));
+            vec3 a = imageLoad(g_curr, q).rgb;
+            vec3 b = imageLoad(g_prev, r).rgb;
+            sad += dot(abs(a - b), vec3(1.0));
+        }
+    }
+    return sad;
+}
+
+vec2 estimate_flow(ivec2 p, ivec2 dim) {
+    int radius = int(clamp(g_con.flow_scale * 4.0, 1.0, 8.0));
+    float best = 1e9;
+    vec2 best_off = vec2(0.0);
+    for (int dy = -radius; dy <= radius; dy++) {
+        for (int dx = -radius; dx <= radius; dx++) {
+            float sad = block_sad(p, ivec2(dx, dy), dim);
+            if (sad < best) {
+                best = sad;
+                best_off = vec2(float(dx), float(dy));
+            }
+        }
+    }
+    return best_off;
+}
+
+void main() {
+    uvec2 pos = gl_GlobalInvocationID.xy;
+    if (pos.x >= g_con.width || pos.y >= g_con.height)
+        return;
+    ivec2 p = ivec2(pos);
+    ivec2 dim = ivec2(g_con.width, g_con.height);
+
+    vec2 flow = estimate_flow(p, dim);
+    vec2 warp_uv = vec2(p) - flow * (1.0 - g_con.alpha);
+    vec4 warped = sample_bilinear_prev(warp_uv, dim);
+    vec4 curr = imageLoad(g_curr, p);
+    imageStore(g_out, p, mix(warped, curr, g_con.alpha));
+}
