@@ -1,0 +1,52 @@
+{
+  "FRAMEGEN": {
+    "file": "NetherSX2-Pink-v26500722-FRAMEGEN.apk",
+    "bytes": 164603930,
+    "sha256": "1432868b94c4136547c2caac12a6884a59ef788d8175993e0bc7feb24edd2ba8"
+  },
+  "NONFRAMEGEN": {
+    "file": "NetherSX2-Pink-v26500722-NONFRAMEGEN.apk",
+    "bytes": 146270363,
+    "sha256": "10985134ae79d0deb27a13a6fea5ac26b09010f798a4b1eada41823eb8802726"
+  },
+  "versionCode": 26500722,
+  "versionName": "v26500722",
+  "package": "xyz.aethersx2.cpink02",
+  "certificate": "fd348b18565a795b3812a1a363fa5627c20aa7c31b54fa89bf10212b710ce98b",
+  "variant_differences": [
+    "classes.dex",
+    "res/xml/graphics_game_settings_preferences.xml",
+    "res/xml/graphics_preferences.xml",
+    "lib/arm64-v8a/libvulkad.so",
+    "META-INF/NETHERSX.SF",
+    "META-INF/NETHERSX.RSA",
+    "META-INF/MANIFEST.MF"
+  ],
+  "removed_from_nonframegen": [
+    "lib/arm64-v8a/liblsfg-android.so"
+  ],
+  "all_other_entries_identical": true,
+  "adaptive_icons_and_legacy_pngs_verified": true,
+  "installer_and_launcher_labels_match": true,
+  "emulator_core": {
+    "library": "lib/arm64-v8a/libemucore.so",
+    "sha256": "a42535ed6d9a77fdb577209d72df9ef5f2e90328f18417198f814eebcd6a45f9",
+    "reported_version": "v2.2n-3668 (Classic)",
+    "aethersx2_base": 3668,
+    "evidence": "The packaged native getScmVersion JNI function references this version string at virtual address 0xff01f. The library is retained unchanged from v26500721.",
+    "upstream": "https://github.com/Trixarian/NetherSX2-classic"
+  },
+  "framegen_library_sha256": "7f56c157821d0e66d3fe5dbcca4ccc8d0ed0998e8d42f32bffbe1dee6787051d",
+  "validation": {
+    "previous_release_missing_viewport_reproduced": true,
+    "compiled_background_vector_attributes_verified": true,
+    "normal_and_round_adaptive_references_verified": true,
+    "legacy_pngs_all_five_densities_verified": true,
+    "installer_and_launcher_labels_match": true,
+    "signatures_verified": true,
+    "alignment_verified": true,
+    "java_core_framegen_drivers_patches_pngs_match_v26500721": true,
+    "graphics_settings_decoded_xml_identical": true,
+    "runtime": "Affected Android device/launcher unknown; on-device verification pending."
+  }
+}

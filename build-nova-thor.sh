@@ -4,7 +4,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 BASE="${1:-$PWD/out/NetherSX2-Slushii-cpink02-framegen.apk}"
-VERSION_CODE="${VERSION_CODE:-26500721}"
+VERSION_CODE="${VERSION_CODE:-26500722}"
 VARIANT="${VARIANT:-FRAMEGEN}"
 case "$VARIANT" in FRAMEGEN|NONFRAMEGEN) ;; *) echo "VARIANT must be FRAMEGEN or NONFRAMEGEN" >&2; exit 1;; esac
 EXPECTED_PACKAGE=xyz.aethersx2.cpink02
@@ -37,6 +37,7 @@ BUILD_TMP=$(mktemp -d /tmp/nether-nova-thor.XXXXXX)
 trap 'rm -rf "$BUILD_TMP"' EXIT
 export NETHER_NO_FSR_FRAMEGEN=1 NETHER_NO_FSR_SWITCH=1
 export BASE_APK="$BASE" RELEASE_VERSION_NAME="v$VERSION_CODE"
+export NETHER_PINK_LAUNCHER_BRANDING=1
 if [[ "$VARIANT" == NONFRAMEGEN ]]; then
     export NETHER_FRAMEGEN_ROW=0 NETHER_NO_INPROCESS_FRAMEGEN=1
     export ADD_LIBS="" DROP_LIBS=liblsfg-android.so

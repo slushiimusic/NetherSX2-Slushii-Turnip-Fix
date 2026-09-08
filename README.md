@@ -2,7 +2,7 @@
 
 NetherSX2 tuned for the Retroid Pocket Nova and AYN Thor: a Turnip-driver build focused on getting the most performance possible from a handheld while keeping the setup simple.
 
-## Download v26500721
+## Download v26500722
 
 Choose one build from the [latest release](https://github.com/slushiimusic/NetherSX2-Slushii-Turnip-Fix/releases/latest):
 
@@ -11,7 +11,9 @@ Choose one build from the [latest release](https://github.com/slushiimusic/Nethe
 
 Both APKs use `xyz.aethersx2.cpink02` and the same signing certificate. They are interchangeable versions of one app. Install the chosen APK over your existing Pink installation to retain settings, save states and memory cards. Do not uninstall or clear app data to switch versions.
 
-[Update notes](releases/v26500721.md) · [Build instructions](BUILDING.md)
+v26500722 repairs a malformed adaptive-icon background that could prevent Android installers or launchers from loading the icon. The installer now uses the same Slushii name as the launcher.
+
+[Update notes](releases/v26500722.md) · [Build instructions](BUILDING.md)
 
 ---
 
@@ -25,7 +27,7 @@ For now, *Shadow of the Colossus* and *Metal Gear Solid 3: Subsistence* will onl
 
 ## What is included
 
-- A continuation of NetherSX2 based on AetherSX2 4248.
+- A customized NetherSX2 Classic build based on AetherSX2 3668. The included core identifies as `v2.2n-3668 (Classic)`.
 - Turnip driver installation and Retroid Pocket Nova-oriented performance settings.
 - 60 FPS patch support for compatible titles, including community work from PeterDelta and Gabominated.
 - Per-game Shadow of the Colossus profiles and patch installation for USA and PAL releases.
@@ -47,16 +49,18 @@ The SOTC profile is configured for native resolution with the tuned EE cycle rat
 
 ## Optional frame generation
 
-v26500721 disables artifact protection completely for both 60 and 120 FPS output. Motion and scene changes no longer trigger its repeated-real-frame fallback, and older saved ON settings are ignored. Interpolation warping and scene-cut artifacts may be more visible.
+Artifact protection is disabled completely for both 60 and 120 FPS output. Motion and scene changes no longer trigger its repeated-real-frame fallback, and older saved ON settings are ignored. Interpolation warping and scene-cut artifacts may be more visible.
 
 The FRAMEGEN build uses LSFG Android and requires your own Lossless.dll from Lossless Scaling. The DLL is not bundled. NONFRAMEGEN includes no framegen capture runtime or DLL setup prompt.
 
-For **30 → 60 FPS without a 60 FPS patch**, turn **60 FPS Mode OFF**, restart the game, and leave **Frame Generation ON** with the display at **60 Hz or 120 Hz**. The default 2× multiplier adds one generated frame between real frames; flow stays at **0.25**. The user confirmed 30 → 60 FPS operation on September 7, 2026; the panel can stay at 60 Hz. See the [setup and validation notes](releases/v26500721.md).
+For **30 → 60 FPS without a 60 FPS patch**, turn **60 FPS Mode OFF**, restart the game, and leave **Frame Generation ON** with the display at **60 Hz or 120 Hz**. The default 2× multiplier adds one generated frame between real frames; flow stays at **0.25**. The user confirmed 30 → 60 FPS operation on September 7, 2026; the panel can stay at 60 Hz. See the [setup and validation notes](releases/v26500722.md).
 
 ---
 
 ## Project lineage
 
-This project continues the NetherSX2 patch work from [Trixarian/NetherSX2-patch](https://github.com/Trixarian/NetherSX2-patch), built around AetherSX2 4248.
+This release uses **NetherSX2 Classic**, based on **AetherSX2 3668**. The included emulator core reports **`v2.2n-3668 (Classic)`**. See [Trixarian/NetherSX2-classic](https://github.com/Trixarian/NetherSX2-classic) for the Classic lineage. The previous description naming AetherSX2 4248 was incorrect; this update corrects the description without replacing the emulator core.
+
+**`v26500722` is the Slushii package/release number**, separate from the underlying Classic core version. FRAMEGEN and NONFRAMEGEN share that core; they differ in the optional frame-generation functionality.
 
 NetherSX2 and AetherSX2 are separate projects. This build is unaffiliated with their respective owners.

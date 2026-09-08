@@ -7,6 +7,7 @@ import sys
 import struct
 from axml_manifest import find_pool_and_header, iter_elements
 from axml_replace_strings import replace_axml_strings
+from launcher_branding import BACKGROUND, compile_background, patch_application_label
 import zipfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -108,6 +109,12 @@ def main():
             break
         if not found: raise ValueError("Cannot update manifest versionName")
 
+    launcher_background = None
+    if os.environ.get("NETHER_PINK_LAUNCHER_BRANDING") == "1":
+        manifest = patch_application_label(manifest)
+        if BACKGROUND not in zin.namelist():
+            raise ValueError("Pink adaptive-icon background is missing")
+        launcher_background = compile_background()
     with zipfile.ZipFile(dst, "w") as zout:
         for info in zin.infolist():
             if info.filename in patched_gfx:
@@ -116,6 +123,8 @@ def main():
                 data = manifest
             elif info.filename == DEX:
                 data = merged_dex
+            elif info.filename == BACKGROUND and launcher_background is not None:
+                data = launcher_background
             elif info.filename == "resources.arsc":
                 data = _theme.patch_arsc(zin.read(info.filename))
             else:

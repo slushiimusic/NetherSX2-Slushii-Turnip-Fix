@@ -1,0 +1,8 @@
+{
+  "library": "lib/arm64-v8a/libemucore.so",
+  "sha256": "a42535ed6d9a77fdb577209d72df9ef5f2e90328f18417198f814eebcd6a45f9",
+  "reported_version": "v2.2n-3668 (Classic)",
+  "aethersx2_base": 3668,
+  "evidence": "The packaged native getScmVersion JNI function references this version string at virtual address 0xff01f. The library is retained unchanged from v26500721.",
+  "upstream": "https://github.com/Trixarian/NetherSX2-classic"
+}
