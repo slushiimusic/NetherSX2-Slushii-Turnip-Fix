@@ -182,7 +182,6 @@ struct State {
     // succeeds, framegen runs again. Stuck-on means the next presentContext
     // would error too, so passthrough is the right behaviour anyway.
     std::atomic<bool> framegenAutoDisabled{false};
-    std::atomic<bool> antiArtifacts{false};
     std::atomic<uint64_t> cacheHits{0};
     std::atomic<uint64_t> cacheMisses{0};
     bool npuPostProcessing = false;
@@ -1844,8 +1843,6 @@ void blitOutputToWindow(const AhbImage &out, bool allowGpuPost = true) {
 }
 
 void workerThread() {
-    FrameSample previousSample;
-    ArtifactRecovery artifactRecovery;
     PresentationClock presentationClock;
     // ---- Frame-time profiling ------------------------------------------------
     //
@@ -1931,7 +1928,6 @@ void workerThread() {
         // flow backwards (treating yesterday's frame as "now"), which collapses
         // moving objects like a head or torso.
         const int newSlot = (g.presentsDone % 2 == 0) ? 0 : 1;
-        const int prevSlot = 1 - newSlot;
 
         // Diagnostic helper: CPU-lock any AHB and sample a 4×4 luma grid.
         // Safe before copyAhbImage (no Vulkan queue ops yet on src) and after
@@ -2014,10 +2010,6 @@ void workerThread() {
 
         FrameSample currentSample;
         readFrameSample(g.inSlot[newSlot], currentSample);
-        const bool suppressGeneratedFrames = artifactRecovery.suppress(
-            g.antiArtifacts.load(std::memory_order_relaxed),
-            g.framesCopied > 1 && riskySamples(previousSample, currentSample));
-        previousSample = currentSample; // failed read invalidates history too
         if (g.keepAllCaptures.load(std::memory_order_relaxed) && currentSample.valid) {
             std::lock_guard<std::mutex> hashLock(g.captureHashMu);
             if (!g.lastCaptureHashValid || currentSample.hash != g.lastCaptureHash)
@@ -2042,15 +2034,10 @@ void workerThread() {
             // No semaphores in this minimal path — synchronous via queue idle.
             std::vector<int> outSems;  // empty
             try {
-                if (suppressGeneratedFrames) {
-                    if (g.performanceMode) LSFG_3_1P::advanceContext(g.framegenCtxId);
-                    else                   LSFG_3_1::advanceContext(g.framegenCtxId);
-                } else {
-                    if (g.performanceMode)
-                        LSFG_3_1P::presentContext(g.framegenCtxId, /*inSem*/ -1, outSems);
-                    else
-                        LSFG_3_1::presentContext(g.framegenCtxId, /*inSem*/ -1, outSems);
-                }
+                if (g.performanceMode)
+                    LSFG_3_1P::presentContext(g.framegenCtxId, /*inSem*/ -1, outSems);
+                else
+                    LSFG_3_1::presentContext(g.framegenCtxId, /*inSem*/ -1, outSems);
             } catch (const std::exception &e) {
                 const char *what = e.what() != nullptr ? e.what() : "(null)";
                 LOGE("presentContext threw: %s", what);
@@ -2118,11 +2105,6 @@ void workerThread() {
                 int64_t(g.outputs.size()+1)*1'000'000'000/capHz);
             const auto captureInterval=std::chrono::nanoseconds(sourceNs);
 
-            if (suppressGeneratedFrames) {
-                const auto suppressed = g.suppressedPairs.fetch_add(1, std::memory_order_relaxed)+1;
-                if (suppressed == 1 || suppressed % 300 == 0)
-                    LOGI("artifact guard: real-frame fallback pairs=%llu", (unsigned long long)suppressed);
-            }
             // Use full output intervals rather than shrinking gaps by however
             // long this pair's GPU work happened to take. Keep phase across pairs.
             const int64_t framesPerPair = static_cast<int64_t>(g.outputs.size()+1);
@@ -2140,12 +2122,10 @@ void workerThread() {
                 timedBlit(out);
             };
             for (auto &o : g.outputs)
-                pacedBlit(suppressGeneratedFrames ? g.inSlot[prevSlot] : o);
+                pacedBlit(o);
             pacedBlit(g.inSlot[newSlot]);
 
-            if (!suppressGeneratedFrames) {
-                g.generatedFrames.fetch_add(g.outputs.size(), std::memory_order_relaxed);
-            }
+            g.generatedFrames.fetch_add(g.outputs.size(), std::memory_order_relaxed);
             g.presentsDone++;  // keep our slot indexing in sync with framegen's frameIdx
 
             // PROFILE: accumulate this frame's segments and emit a summary
@@ -2239,7 +2219,6 @@ int initRenderLoop(const char *cacheDir, const RenderLoopConfig &cfg) {
     g.performanceMode = cfg.performance;
     g.framegenFp16 = cfg.framegenFp16;
     g.hdr = cfg.hdr;
-    g.antiArtifacts.store(cfg.antiArtifacts, std::memory_order_relaxed);
     const bool requestedNpu = cfg.npuPostProcessing;
     g.npuPreset = cfg.npuPreset < 0 ? 0 : (cfg.npuPreset > 4 ? 0 : cfg.npuPreset);
     g.npuUpscaleFactor = cfg.npuUpscaleFactor == 2 ? 2 : 1;
@@ -2714,9 +2693,8 @@ extern "C" void lsfg_bridge_set_skip_duplicate_capture(int skip) {
     setSkipDuplicateCapture(skip != 0);
 }
 
-void setAntiArtifacts(bool enabled) {
-    g.antiArtifacts.store(enabled, std::memory_order_relaxed);
-}
+// Retain the JNI ABI while ignoring legacy requests to enable protection.
+void setAntiArtifacts(bool /*enabled*/) {}
 
 void setVsyncPeriodNs(int64_t periodNs) {
     if (periodNs < 0) periodNs = 0;

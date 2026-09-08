@@ -36,7 +36,6 @@ int main() {
             for (size_t i=0;i<b.size();++i) b[i]=(a[i]+shift)&255;
             const auto sa=sampleFrame(a.data(),w,h,stride), sb=sampleFrame(b.data(),w,h,stride);
             assert(sa.valid && sb.valid);
-            assert(riskySamples(sa,sb)==riskyFramePair(a.data(),b.data(),w,h,stride,stride));
             if (!shift) assert(sa.hash==sb.hash);
         }
     }
@@ -63,6 +62,6 @@ int main() {
     }
     assert(last-first==119*slot);
     assert(stable.reserve(last+1000000,slot*2)==last+1000000); // 60 -> 30 source regime
-    std::cout << "PASS: recorded Thor startup gap, queue-drop feedback prevention, source rate transitions, cached artifact-grid equivalence, stride/size safety, hash stability, "
+    std::cout << "PASS: recorded Thor startup gap, queue-drop feedback prevention, source rate transitions, capture hash sampling, stride/size safety, hash stability, "
                  "variable compute, missed deadlines, pause recovery and 120-Hz output slots\n";
 }

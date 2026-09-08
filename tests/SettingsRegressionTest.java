@@ -273,6 +273,18 @@ public final class SettingsRegressionTest {
         check(ShimFrameGen.prepare(displayCtx),"cached prepare allows 60 Hz");
         check(cap.getInt(null)==60,"default output cap is 60 on a 60 Hz active mode");
         check("0.25".equals(TurnipConfig.readConfKey(displayFiles.resolve("turnip.conf").toFile(),"fg_flow_scale")),"60 Hz toggles preserve flow");
+        // Legacy ON settings cannot restore artifact protection at either rate.
+        java.lang.reflect.Method load=ShimFrameGen.class.getDeclaredMethod("loadFramegenConfig",java.io.File.class); load.setAccessible(true);
+        java.lang.reflect.Field anti=ShimFrameGen.class.getDeclaredField("fgAntiArtifacts"); anti.setAccessible(true);
+        java.lang.reflect.Field flow=ShimFrameGen.class.getDeclaredField("fgFlowScale"); flow.setAccessible(true);
+        for(int hz:new int[]{60,120}) for(String value:new String[]{"on","true","1","off"}) {
+            displayCtx.windowService=(android.view.WindowManager)()->new android.view.Display(hz,60,120);
+            check(ShimFrameGen.refreshDisplayEligibility(displayCtx),"display remains supported with legacy artifact setting");
+            Files.writeString(displayFiles.resolve("turnip.conf"),"fg_anti_artifacts="+value+"\nfg_flow_scale=0.25\n");
+            load.invoke(null,displayFiles.toFile());
+            check(!anti.getBoolean(null),"artifact protection stays OFF at "+hz+" Hz with saved "+value);
+            check(flow.getFloat(null)==0.25f,"disabling artifact protection preserves flow");
+        }
         displayCtx.windowService=null;
         check(HandheldTier.framegenBlockReason(displayCtx)!=null,"unknown display cannot arm until capability is known");
 
@@ -302,7 +314,7 @@ public final class SettingsRegressionTest {
         Files.delete(repaired.resolve(StorageOwnershipRepair.STAGING+".complete"));
         check(!StorageOwnershipRepair.restore(repaired.toFile()),"partial import stops on an existing different save");
         check(Files.readString(repaired.resolve("sstates/USM.01.p2s")).equals("newer user save"),"conflicting save must never be replaced");
-        System.out.println("PASS: OSD persistence and callbacks, widescreen/cadence recovery, failed-write dialog suppression, live FG prompt gating, effective display aspect, 60/120 Hz eligibility, active-mode pacing and cached-start gate, app-owned import and newer-save protection");
+        System.out.println("PASS: OSD persistence and callbacks, widescreen/cadence recovery, failed-write dialog suppression, live FG prompt gating, effective display aspect, 60/120 Hz eligibility, active-mode pacing, artifact protection OFF despite legacy settings, cached-start gate, app-owned import and newer-save protection");
     }
     static final class MemoryPrefs implements SharedPreferences {
         final Map<String,Object> values=new HashMap<>();

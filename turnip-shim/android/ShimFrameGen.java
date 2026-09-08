@@ -4466,8 +4466,8 @@ public final class ShimFrameGen {
         return findEmulatorSurfaceView(v);
     }
 
-    /** Suppress generated frames on high-delta pairs (fast motion / cuts). */
-    private static boolean fgAntiArtifacts = true;
+    /** Artifact protection is disabled for every output rate and multiplier. */
+    private static final boolean fgAntiArtifacts = false;
 
     private static int initContextDefaults(String cacheDir, int w, int h) {
         int result = NativeBridge.INSTANCE.initContext(
@@ -4569,9 +4569,7 @@ public final class ShimFrameGen {
         String multRaw = TurnipConfig.readConfKey(conf, "fg_multiplier");
         fgMultiplierAuto = multRaw != null && "auto".equalsIgnoreCase(multRaw.trim());
         fgFlowScale = clampFloat(conf, "fg_flow_scale", 0.25f, 1.0f, 0.25f);
-        // Reject cuts and adjacent regions with large high-contrast changes.
-        // Keep optical flow at the requested scale; only unsafe pairs use a real frame.
-        fgAntiArtifacts = readConfBool(conf, "fg_anti_artifacts", true);
+        // Ignore legacy fg_anti_artifacts values; protection stays disabled.
         fgQueueDepth = clampInt(conf, "fg_queue_depth", 1, 8, 1);
         /* Default the output cap to THIS DISPLAY's refresh rate, not 120.
          * Hardcoding 120 was tuned for one 120 Hz handheld; on a 60 Hz phone it

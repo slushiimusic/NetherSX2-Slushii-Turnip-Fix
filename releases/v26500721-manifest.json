@@ -1,0 +1,42 @@
+{
+  "FRAMEGEN": {
+    "file": "NetherSX2-Pink-v26500721-FRAMEGEN.apk",
+    "bytes": 164604135,
+    "sha256": "a422cd5822263ed00ebaa99e3d1bf3cd99fca80e3140ed37bc8a20c6f2a98e43"
+  },
+  "NONFRAMEGEN": {
+    "file": "NetherSX2-Pink-v26500721-NONFRAMEGEN.apk",
+    "bytes": 146270565,
+    "sha256": "3801f297100a0fa0ebb736dc6074977227fcedef9c6a04d13e99ebc1819404ad"
+  },
+  "versionCode": 26500721,
+  "versionName": "v26500721",
+  "package": "xyz.aethersx2.cpink02",
+  "certificate": "fd348b18565a795b3812a1a363fa5627c20aa7c31b54fa89bf10212b710ce98b",
+  "variant_differences": [
+    "classes.dex",
+    "res/xml/graphics_game_settings_preferences.xml",
+    "res/xml/graphics_preferences.xml",
+    "lib/arm64-v8a/libvulkad.so",
+    "META-INF/NETHERSX.SF",
+    "META-INF/NETHERSX.RSA",
+    "META-INF/MANIFEST.MF"
+  ],
+  "removed_from_nonframegen": [
+    "lib/arm64-v8a/liblsfg-android.so"
+  ],
+  "all_other_entries_identical": true,
+  "validation": {
+    "shared_host_checks_passed": 7,
+    "nonframegen_checks_passed": 2,
+    "signatures_verified": true,
+    "alignment_verified": true,
+    "native_jni_exports_and_dependencies_preserved": true,
+    "legacy_artifact_on_ignored_at_60_and_120_hz": true,
+    "native_artifact_setter_is_noop": true,
+    "artifact_suppression_path_removed": true,
+    "core_drivers_patches_match_v26500720": true,
+    "runtime": "New on-device gameplay validation pending."
+  },
+  "framegen_library_sha256": "7f56c157821d0e66d3fe5dbcca4ccc8d0ed0998e8d42f32bffbe1dee6787051d"
+}

@@ -2,7 +2,7 @@
 
 NetherSX2 tuned for the Retroid Pocket Nova and AYN Thor: a Turnip-driver build focused on getting the most performance possible from a handheld while keeping the setup simple.
 
-## Download v26500720
+## Download v26500721
 
 Choose one build from the [latest release](https://github.com/slushiimusic/NetherSX2-Slushii-Turnip-Fix/releases/latest):
 
@@ -11,7 +11,7 @@ Choose one build from the [latest release](https://github.com/slushiimusic/Nethe
 
 Both APKs use `xyz.aethersx2.cpink02` and the same signing certificate. They are interchangeable versions of one app. Install the chosen APK over your existing Pink installation to retain settings, save states and memory cards. Do not uninstall or clear app data to switch versions.
 
-[Update notes](releases/v26500720.md) · [Build instructions](BUILDING.md)
+[Update notes](releases/v26500721.md) · [Build instructions](BUILDING.md)
 
 ---
 
@@ -47,11 +47,11 @@ The SOTC profile is configured for native resolution with the tuned EE cycle rat
 
 ## Optional frame generation
 
-v26500720 relaxes artifact protection so ordinary camera movement and moving window patterns keep interpolating. Abrupt scene changes still reset frame history. Some edge warping can remain.
+v26500721 disables artifact protection completely for both 60 and 120 FPS output. Motion and scene changes no longer trigger its repeated-real-frame fallback, and older saved ON settings are ignored. Interpolation warping and scene-cut artifacts may be more visible.
 
 The FRAMEGEN build uses LSFG Android and requires your own Lossless.dll from Lossless Scaling. The DLL is not bundled. NONFRAMEGEN includes no framegen capture runtime or DLL setup prompt.
 
-For **30 → 60 FPS without a 60 FPS patch**, turn **60 FPS Mode OFF**, restart the game, and leave **Frame Generation ON** with the display at **60 Hz or 120 Hz**. The default 2× multiplier adds one generated frame between real frames; flow stays at **0.25**. The user confirmed 30 → 60 FPS operation on September 7, 2026; the panel can stay at 60 Hz. See the [setup and validation notes](releases/v26500720.md).
+For **30 → 60 FPS without a 60 FPS patch**, turn **60 FPS Mode OFF**, restart the game, and leave **Frame Generation ON** with the display at **60 Hz or 120 Hz**. The default 2× multiplier adds one generated frame between real frames; flow stays at **0.25**. The user confirmed 30 → 60 FPS operation on September 7, 2026; the panel can stay at 60 Hz. See the [setup and validation notes](releases/v26500721.md).
 
 ---
 

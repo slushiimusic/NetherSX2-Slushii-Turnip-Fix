@@ -17,9 +17,6 @@ mkdir -p "$CHECK_OUT/host"
 "$JAVA_HOME/bin/java" -cp "$CHECK_OUT/host:$CHECK_OUT:$SDK/platforms/android-35/android.jar" \
   xyz.aethersx2.android.shim.SettingsRegressionTest "$CHECK_OUT/settings-fixture"
 
-"${CXX:-c++}" -std=c++17 -O2 tests/ArtifactGuardTest.cpp -o "$CHECK_OUT/artifact-guard"
-"$CHECK_OUT/artifact-guard"
-
 "${CXX:-c++}" -std=c++17 -O2 -pthread tests/CaptureHandoffTest.cpp -o "$CHECK_OUT/capture-handoff"
 "$CHECK_OUT/capture-handoff"
 
