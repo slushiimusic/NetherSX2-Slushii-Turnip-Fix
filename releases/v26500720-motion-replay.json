@@ -1,0 +1,41 @@
+{
+  "scope": "Recorded composited output sampled at 30 FPS, not raw GS captures or a new device test. Both guard versions consume the identical frames.",
+  "clips": {
+    "thor-usm-12812659-pan.mp4": {
+      "pairs": 658,
+      "moving_pairs": 11,
+      "old_risky": 11,
+      "new_risky": 0,
+      "old_suppressed": 22,
+      "new_suppressed": 0,
+      "old_suppressed_moving": 11,
+      "new_suppressed_moving": 0,
+      "old_longest_run": 2,
+      "new_longest_run": 0
+    },
+    "thor-usm-12812659-fastpan.mp4": {
+      "pairs": 659,
+      "moving_pairs": 125,
+      "old_risky": 127,
+      "new_risky": 0,
+      "old_suppressed": 140,
+      "new_suppressed": 0,
+      "old_suppressed_moving": 125,
+      "new_suppressed_moving": 0,
+      "old_longest_run": 12,
+      "new_longest_run": 0
+    },
+    "pink-artifacts-pan-12812654.mp4": {
+      "pairs": 449,
+      "moving_pairs": 449,
+      "old_risky": 449,
+      "new_risky": 0,
+      "old_suppressed": 449,
+      "new_suppressed": 0,
+      "old_suppressed_moving": 449,
+      "new_suppressed_moving": 0,
+      "old_longest_run": 449,
+      "new_longest_run": 0
+    }
+  }
+}

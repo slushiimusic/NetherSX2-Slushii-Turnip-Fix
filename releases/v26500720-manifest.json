@@ -1,0 +1,45 @@
+{
+  "FRAMEGEN": {
+    "file": "NetherSX2-Pink-v26500720-FRAMEGEN.apk",
+    "bytes": 164622240,
+    "sha256": "2bbd0d41eb9379c3884d11943e707bd71c7abe9f301e26b556d33366ff04c729"
+  },
+  "NONFRAMEGEN": {
+    "file": "NetherSX2-Pink-v26500720-NONFRAMEGEN.apk",
+    "bytes": 146270537,
+    "sha256": "34f31d8676d1c7192a740658a60190f27631ac70c31cf2080939e6ae28ac39a1"
+  },
+  "versionCode": 26500720,
+  "versionName": "v26500720",
+  "package": "xyz.aethersx2.cpink02",
+  "certificate": "fd348b18565a795b3812a1a363fa5627c20aa7c31b54fa89bf10212b710ce98b",
+  "variant_differences": [
+    "classes.dex",
+    "res/xml/graphics_game_settings_preferences.xml",
+    "res/xml/graphics_preferences.xml",
+    "lib/arm64-v8a/libvulkad.so",
+    "META-INF/NETHERSX.SF",
+    "META-INF/NETHERSX.RSA",
+    "META-INF/MANIFEST.MF"
+  ],
+  "removed_from_nonframegen": [
+    "lib/arm64-v8a/liblsfg-android.so"
+  ],
+  "all_other_entries_identical": true,
+  "validation": {
+    "shared_host_checks_passed": 8,
+    "nonframegen_checks_passed": 2,
+    "signatures_verified": true,
+    "alignment_verified": true,
+    "native_jni_exports_and_dependencies_preserved": true,
+    "continuous_motion_and_scene_change_tests_passed": true,
+    "recorded_replay": {
+      "sampled_pairs": 1766,
+      "old_suppressed": 611,
+      "new_suppressed": 0,
+      "scope": "Detector replay on recorded composited output; not a new gameplay or generated-frame quality measurement."
+    },
+    "runtime": "New on-device gameplay validation pending."
+  },
+  "framegen_library_sha256": "7d48e5dc06dd9a27b140bdaa0fda2bce28b882149ea816a8eed533fb03447552"
+}
