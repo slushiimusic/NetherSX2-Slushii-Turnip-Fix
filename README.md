@@ -25,6 +25,12 @@ For now, *Shadow of the Colossus* and *Metal Gear Solid 3: Subsistence* will onl
 
 ---
 
+## Reported compatibility issue
+
+**Xenosaga Episode I:** a tester reports the title screen or another stale image during loading, including with framegen off. This is under investigation and closely resembles an older PCSX2 hardware-renderer issue. **v26500722 does not include a verified fix.** See the [evidence and diagnostic comparison](COMPATIBILITY.md).
+
+---
+
 ## What is included
 
 - A customized NetherSX2 Classic build based on AetherSX2 3668. The included core identifies as `v2.2n-3668 (Classic)`.
