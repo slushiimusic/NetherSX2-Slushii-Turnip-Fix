@@ -3858,8 +3858,8 @@ public final class TurnipConfig {
         File conf = new File(files, "turnip.conf");
         if (displayReason != null
                 && HandheldTier.framegenDisplayCapabilityBlockReason(ctx) == null) {
-            // A capable panel temporarily set to 60 Hz suspends output, but
-            // retains ON intent so returning to 120 Hz can resume it.
+            // An unsupported active mode suspends output, but retains ON
+            // intent so returning to 60 or 120 Hz can resume it.
             writeFramegenMode(conf, requestedEnable);
             ShimFrameGen.refreshDisplayEligibility(ctx);
             return false;

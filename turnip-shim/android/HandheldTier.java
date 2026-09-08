@@ -119,9 +119,9 @@ public final class HandheldTier {
         return UNKNOWN;
     }
 
-    /** Accept normal fractional timing around the 120 Hz panel mode. */
-    static boolean is120Hz(float hz) {
-        return Math.abs(hz - 120.0f) < 1.0f;
+    /** Accept normal fractional timing around the supported 60 and 120 Hz modes. */
+    static boolean isFramegenRefreshRate(float hz) {
+        return Math.abs(hz - 60.0f) < 1.0f || Math.abs(hz - 120.0f) < 1.0f;
     }
 
     /** Runtime eligibility follows the active physical mode, including a user's 60 Hz choice. */
@@ -131,10 +131,10 @@ public final class HandheldTier {
                     (android.view.WindowManager) ctx.getSystemService(Context.WINDOW_SERVICE);
             android.view.Display d = wm == null ? null : wm.getDefaultDisplay();
             // getRefreshRate can reflect a per-app FPS override on Android 13.
-            if (d != null && is120Hz(d.getMode().getRefreshRate())) return null;
+            if (d != null && isFramegenRefreshRate(d.getMode().getRefreshRate())) return null;
         } catch (Throwable ignored) { }
         String capability = framegenDisplayCapabilityBlockReason(ctx);
-        return capability == null ? "Set display refresh rate to 120 Hz" : capability;
+        return capability == null ? "Set display refresh rate to 60 Hz or 120 Hz" : capability;
     }
 
     /** Hardware capability is separate from a temporary lower-refresh selection. */
@@ -144,12 +144,12 @@ public final class HandheldTier {
                     (android.view.WindowManager) ctx.getSystemService(Context.WINDOW_SERVICE);
             android.view.Display d = wm == null ? null : wm.getDefaultDisplay();
             if (d != null) {
-                if (is120Hz(d.getRefreshRate())) return null;
+                if (isFramegenRefreshRate(d.getMode().getRefreshRate())) return null;
                 for (android.view.Display.Mode m : d.getSupportedModes())
-                    if (is120Hz(m.getRefreshRate())) return null;
+                    if (isFramegenRefreshRate(m.getRefreshRate())) return null;
             }
         } catch (Throwable ignored) { }
-        return "Requires a 120 Hz display";
+        return "Requires a 60 Hz or 120 Hz display mode";
     }
 
     /** Display eligibility also applies to old settings and diagnostic overrides. */

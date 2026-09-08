@@ -110,6 +110,10 @@ public final class NativeBridge {
     /** True passes real frames straight through, generating nothing. */
     public native void setBypass(boolean bypass);
 
+    /** Update the output cap when the active panel mode changes. */
+    public native void setPacingParams(int targetFpsCap, float emaAlpha,
+            float outlierRatio, float vsyncSlackMs, int queueDepth);
+
     /** Keep every pushed frame even when content hash matches (in-process capture). */
     public native void setSkipDuplicateCapture(boolean skip);
 

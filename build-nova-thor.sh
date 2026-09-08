@@ -4,7 +4,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 BASE="${1:-$PWD/out/NetherSX2-Slushii-cpink02-framegen.apk}"
-VERSION_CODE="${VERSION_CODE:-26500718}"
+VERSION_CODE="${VERSION_CODE:-26500719}"
 VARIANT="${VARIANT:-FRAMEGEN}"
 case "$VARIANT" in FRAMEGEN|NONFRAMEGEN) ;; *) echo "VARIANT must be FRAMEGEN or NONFRAMEGEN" >&2; exit 1;; esac
 EXPECTED_PACKAGE=xyz.aethersx2.cpink02

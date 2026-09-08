@@ -188,12 +188,12 @@ public final class SettingsRegressionTest {
         check(android.app.AlertDialog.shown==fgDialogs+1,"present-source enable still offers required restart");
         Files.writeString(conf,savedConf);
 
-        // The active physical mode must be 120 Hz; overrides cannot bypass it.
+        // Both 60 and 120 Hz are supported; other physical modes remain gated.
         Path displayFiles=files.resolve("display-eligibility"); Files.createDirectories(displayFiles);
         Context displayCtx=new Context(displayFiles.toFile());
         Files.writeString(displayFiles.resolve("turnip.conf"),"fg_force=on\ndisplay_hz=120\nlsfg_overlay=on\nfg_osd=on\nfg_flow_scale=0.25\n");
         PreferenceManager.prefs=new MemoryPrefs();
-        for(float hz:new float[]{60,75,90,144}) {
+        for(float hz:new float[]{75,90,144}) {
             displayCtx.windowService=(android.view.WindowManager)()->new android.view.Display(hz,hz);
             check(HandheldTier.framegenBlockReason(displayCtx)!=null,"unsupported display must not accept fg_force/display_hz override: "+hz);
             field(ShimFrameGen.class,"shadersReady",true);
@@ -210,13 +210,14 @@ public final class SettingsRegressionTest {
         check("off".equals(TurnipConfig.readConfKey(displayFiles.resolve("turnip.conf").toFile(),"lsfg_overlay")),"unsupported display clears native capture config");
         check("0.25".equals(TurnipConfig.readConfKey(displayFiles.resolve("turnip.conf").toFile(),"fg_flow_scale")),"display gate preserves flow");
         check(android.app.AlertDialog.shown==displayDialogs,"unavailable framegen must not spam restart dialogs");
-        for(float hz:new float[]{119.88f,119.999f,120}) {
+        for(float hz:new float[]{59.94f,60,119.88f,119.999f,120}) {
             displayCtx.windowService=(android.view.WindowManager)()->new android.view.Display(hz,60,hz);
-            check(HandheldTier.framegenBlockReason(displayCtx)==null,"active fractional 120 Hz is eligible: "+hz);
+            check(HandheldTier.framegenBlockReason(displayCtx)==null,"active fractional 60/120 Hz is eligible: "+hz);
             displayCtx.windowService=(android.view.WindowManager)()->new android.view.Display(60,60,hz);
-            check(HandheldTier.framegenBlockReason(displayCtx)!=null,"capable panel temporarily at 60 Hz is greyed out: "+hz);
-            check(HandheldTier.framegenHardwareBlockReason(displayCtx)==null,"temporary 60 Hz must not permanently suppress DLL import");
+            check(HandheldTier.framegenBlockReason(displayCtx)==null,"active 60 Hz row stays available: "+hz);
+            check(HandheldTier.framegenHardwareBlockReason(displayCtx)==null,"60 Hz must allow DLL import");
         }
+        displayCtx.windowService=(android.view.WindowManager)()->new android.view.Display(90,60,120);
         PreferenceManager.prefs.edit().putBoolean("VulkanShim/Lsfg",true).commit();
         String beforeSuspend="fg_force=on\nlsfg_overlay=on\nfg_osd=on\nfg_flow_scale=0.25\n";
         Files.writeString(displayFiles.resolve("turnip.conf"),beforeSuspend);
@@ -224,10 +225,10 @@ public final class SettingsRegressionTest {
         field(ShimFrameGen.class,"overlayRuntimeEnabled",true);
         int temporaryDialogs=android.app.AlertDialog.shown;
         TurnipConfig.applyLsfgMode(displayCtx,true);
-        check(PreferenceManager.prefs.getBoolean("VulkanShim/Lsfg",false),"temporary 60 Hz preserves ON preference");
-        check("on".equals(TurnipConfig.readConfKey(displayFiles.resolve("turnip.conf").toFile(),"lsfg_overlay")),"temporary 60 Hz preserves ON config");
+        check(PreferenceManager.prefs.getBoolean("VulkanShim/Lsfg",false),"temporary unsupported mode preserves ON preference");
+        check("on".equals(TurnipConfig.readConfKey(displayFiles.resolve("turnip.conf").toFile(),"lsfg_overlay")),"temporary unsupported mode preserves ON config");
         check(!ShimFrameGen.ready(),"cached startup cannot run while suspended");
-        check(!ShimFrameGen.refreshDisplayEligibility(displayCtx),"repeated 60 Hz checks remain suspended");
+        check(!ShimFrameGen.refreshDisplayEligibility(displayCtx),"repeated unsupported-mode checks remain suspended");
         check(android.app.AlertDialog.shown==temporaryDialogs,"temporary display changes do not prompt");
         TurnipConfig.applyLsfgMode(displayCtx,false);
         check("off".equals(TurnipConfig.readConfKey(displayFiles.resolve("turnip.conf").toFile(),"lsfg_overlay")),"OFF still persists while display blocked");
@@ -236,9 +237,9 @@ public final class SettingsRegressionTest {
         check(ShimFrameGen.ready(),"cached pipeline becomes available after restoration");
         java.lang.reflect.Field runtime=ShimFrameGen.class.getDeclaredField("overlayRuntimeEnabled"); runtime.setAccessible(true);
         check(!runtime.getBoolean(null),"restoration respects OFF selected while suspended");
-        displayCtx.windowService=(android.view.WindowManager)()->new android.view.Display(60,60,120);
+        displayCtx.windowService=(android.view.WindowManager)()->new android.view.Display(90,60,120);
         TurnipConfig.applyLsfgMode(displayCtx,true);
-        check(!runtime.getBoolean(null),"temporary 60 Hz gates native runtime");
+        check(!runtime.getBoolean(null),"temporary unsupported mode gates native runtime");
         displayCtx.windowService=(android.view.WindowManager)()->new android.view.Display(120,60,120) {
             @Override public float getRefreshRate() { return 60; }
         };
@@ -248,6 +249,30 @@ public final class SettingsRegressionTest {
         check(ShimFrameGen.refreshDisplayEligibility(displayCtx),"120 Hz resumes saved ON intent");
         check(runtime.getBoolean(null),"return to 120 Hz re-arms runtime without another toggle");
         check("0.25".equals(TurnipConfig.readConfKey(displayFiles.resolve("turnip.conf").toFile(),"fg_flow_scale")),"suspend and restore preserve flow");
+        // Runtime remains enabled through 120 -> 60 -> 120. Pacing uses the
+        // active physical mode even when supported modes or app FPS differ.
+        field(ShimFrameGen.class,"contextUp",false);
+        field(ShimFrameGen.class,"fgRequestedFpsCap",240);
+        java.lang.reflect.Field cap=ShimFrameGen.class.getDeclaredField("fgTargetFpsCap"); cap.setAccessible(true);
+        for(float hz:new float[]{60,120,59.94f,119.88f}) {
+            displayCtx.windowService=(android.view.WindowManager)()->new android.view.Display(hz,60,120) {
+                @Override public float getRefreshRate() { return 30; }
+            };
+            check(ShimFrameGen.refreshDisplayEligibility(displayCtx),"60/120 mode switches stay eligible");
+            check(runtime.getBoolean(null),"mode switch keeps framegen enabled");
+            check(ShimFrameGen.ready(),"mode switch preserves cached shaders");
+            check(cap.getInt(null)==Math.round(hz),"pacing caps to active mode, ignoring stale 240 override and app FPS");
+        }
+        field(ShimFrameGen.class,"fgRequestedFpsCap",0);
+        displayCtx.windowService=(android.view.WindowManager)()->new android.view.Display(60,60,120);
+        TurnipConfig.applyLsfgMode(displayCtx,false);
+        check(!runtime.getBoolean(null),"OFF works at 60 Hz");
+        check("off".equals(TurnipConfig.readConfKey(displayFiles.resolve("turnip.conf").toFile(),"lsfg_overlay")),"60 Hz OFF persists");
+        TurnipConfig.applyLsfgMode(displayCtx,true);
+        check(runtime.getBoolean(null),"ON works at 60 Hz");
+        check(ShimFrameGen.prepare(displayCtx),"cached prepare allows 60 Hz");
+        check(cap.getInt(null)==60,"default output cap is 60 on a 60 Hz active mode");
+        check("0.25".equals(TurnipConfig.readConfKey(displayFiles.resolve("turnip.conf").toFile(),"fg_flow_scale")),"60 Hz toggles preserve flow");
         displayCtx.windowService=null;
         check(HandheldTier.framegenBlockReason(displayCtx)!=null,"unknown display cannot arm until capability is known");
 
@@ -277,7 +302,7 @@ public final class SettingsRegressionTest {
         Files.delete(repaired.resolve(StorageOwnershipRepair.STAGING+".complete"));
         check(!StorageOwnershipRepair.restore(repaired.toFile()),"partial import stops on an existing different save");
         check(Files.readString(repaired.resolve("sstates/USM.01.p2s")).equals("newer user save"),"conflicting save must never be replaced");
-        System.out.println("PASS: OSD persistence and callbacks, widescreen/cadence recovery, failed-write dialog suppression, live FG prompt gating, effective display aspect, 120 Hz eligibility/cached-start gate, app-owned import and newer-save protection");
+        System.out.println("PASS: OSD persistence and callbacks, widescreen/cadence recovery, failed-write dialog suppression, live FG prompt gating, effective display aspect, 60/120 Hz eligibility, active-mode pacing and cached-start gate, app-owned import and newer-save protection");
     }
     static final class MemoryPrefs implements SharedPreferences {
         final Map<String,Object> values=new HashMap<>();

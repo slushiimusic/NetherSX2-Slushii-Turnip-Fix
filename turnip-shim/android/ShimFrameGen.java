@@ -273,6 +273,7 @@ public final class ShimFrameGen {
     private static volatile boolean displaySuspended;
 
     static boolean refreshDisplayEligibility(Context ctx) {
+        noteDisplayRefresh(ctx);
         String reason = HandheldTier.framegenDisplayBlockReason(ctx);
         if (reason != null) {
             prepareBlockReason = reason;
@@ -286,7 +287,7 @@ public final class ShimFrameGen {
         boolean recovering = displaySuspended;
         displaySuspended = false;
         if (recovering && !sessionDisabled && confSaysOverlayOn(ctx)) {
-            Log.i(TAG, "framegen display restored to 120 Hz");
+            Log.i(TAG, "framegen display restored to " + displayRefreshHz + " Hz");
             enableOverlay(ctx);
         }
         return true;
@@ -305,6 +306,8 @@ public final class ShimFrameGen {
     private static float fgFlowScale = 0.25f;
     private static int fgQueueDepth = 1;
     private static int fgTargetFpsCap = 120;
+    private static int fgRequestedFpsCap;
+    private static int appliedFpsCap;
     private static boolean fgPerformance = false;
 
     private static boolean overlayAdded = false;
@@ -3130,8 +3133,8 @@ public final class ShimFrameGen {
     }
 
     /**
-     * This display's refresh rate, rounded. Defaults the framegen output cap so
-     * the feature behaves on a 60/90/144 Hz device and not just a 120 Hz one.
+     * The active physical refresh rate, rounded. Bounds output pacing at 60
+     * or 120 Hz even when the panel supports a higher mode.
      */
     private static int displayRefreshHz = 120;
 
@@ -3159,20 +3162,33 @@ public final class ShimFrameGen {
                 if (wm != null) d = wm.getDefaultDisplay();
             }
             if (d == null) return;
-            float hz = d.getRefreshRate();
-            /* Take the highest mode the display can actually run: Android may
-             * report the current (possibly throttled) mode, and the compositor
-             * can switch up once we start presenting. */
-            try {
-                for (android.view.Display.Mode m : d.getSupportedModes())
-                    if (m.getRefreshRate() > hz) hz = m.getRefreshRate();
-            } catch (Throwable ignored) { }
-            if (hz >= 30f && hz <= 240f) {
-                displayRefreshHz = Math.round(hz);
-                Log.i(TAG, "framegen: display refresh " + displayRefreshHz
-                        + " Hz — default output cap follows it");
+            // Respect the selected physical mode, not maximum capability or
+            // Android's per-app FPS override. A 120 Hz panel can be set to 60.
+            float hz = d.getMode().getRefreshRate();
+            if (HandheldTier.isFramegenRefreshRate(hz)) {
+                int activeHz = Math.round(hz);
+                if (displayRefreshHz != activeHz) {
+                    displayRefreshHz = activeHz;
+                    Log.i(TAG, "framegen: active display refresh " + activeHz + " Hz");
+                }
+                updatePacingCap();
             }
         } catch (Throwable ignored) { }
+    }
+
+    /** Change pacing live without rebuilding the interpolation context. */
+    private static void updatePacingCap() {
+        fgTargetFpsCap = fgRequestedFpsCap > 0
+                ? Math.min(fgRequestedFpsCap, displayRefreshHz) : displayRefreshHz;
+        if (contextUp && appliedFpsCap != fgTargetFpsCap) {
+            try {
+                NativeBridge.INSTANCE.setPacingParams(fgTargetFpsCap,
+                        EMA_ALPHA, OUTLIER_RATIO, VSYNC_SLACK_MS, fgQueueDepth);
+                appliedFpsCap = fgTargetFpsCap;
+            } catch (Throwable t) {
+                Log.w(TAG, "framegen pacing update will retry: " + t);
+            }
+        }
     }
 
     /** EmulationActivity paused — instrument off until it resumes. */
@@ -4454,7 +4470,7 @@ public final class ShimFrameGen {
     private static boolean fgAntiArtifacts = true;
 
     private static int initContextDefaults(String cacheDir, int w, int h) {
-        return NativeBridge.INSTANCE.initContext(
+        int result = NativeBridge.INSTANCE.initContext(
                 cacheDir, w, h,
                 fgMultiplier,
                 fgFlowScale,
@@ -4467,6 +4483,8 @@ public final class ShimFrameGen {
                 /* gpu...       */ false, 0, 0, 1f, 0f, 0f,
                 /* targetFpsCap */ fgTargetFpsCap,
                 EMA_ALPHA, OUTLIER_RATIO, VSYNC_SLACK_MS, fgQueueDepth);
+        if (result == 0) appliedFpsCap = fgTargetFpsCap;
+        return result;
     }
 
     /**
@@ -4478,7 +4496,7 @@ public final class ShimFrameGen {
      *   <li>{@code fg_multiplier} — LSFG multiplier, 2–4 (default 2)</li>
      *   <li>{@code fg_flow_scale} — optical-flow scale, 0.25–1.0 (default 0.25)</li>
      *   <li>{@code fg_queue_depth} — pipeline backlog, 1–8 (default 1)</li>
-     *   <li>{@code fg_target_fps_cap} — output pacing cap, 0 or 60–240 (default 120)</li>
+     *   <li>{@code fg_target_fps_cap} — optional output cap, limited by the active display mode</li>
      * </ul>
      */
     private static void loadFramegenConfig(File files) {
@@ -4559,7 +4577,8 @@ public final class ShimFrameGen {
          * Hardcoding 120 was tuned for one 120 Hz handheld; on a 60 Hz phone it
          * asks the pipeline to generate two frames per vblank, which is pure
          * wasted GPU and shows up as judder rather than smoothness. */
-        fgTargetFpsCap = clampInt(conf, "fg_target_fps_cap", 0, 240, displayRefreshHz);
+        fgRequestedFpsCap = clampInt(conf, "fg_target_fps_cap", 0, 240, 0);
+        updatePacingCap();
         fgPerformance = readConfBool(conf, "fg_performance",
                 readConfBool(conf, "lsfg_performance_mode", false));
         try {

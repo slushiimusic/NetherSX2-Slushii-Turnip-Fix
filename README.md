@@ -2,16 +2,16 @@
 
 NetherSX2 tuned for the Retroid Pocket Nova and AYN Thor: a Turnip-driver build focused on getting the most performance possible from a handheld while keeping the setup simple.
 
-## Download v26500718
+## Download v26500719
 
 Choose one build from the [latest release](https://github.com/slushiimusic/NetherSX2-Slushii-Turnip-Fix/releases/latest):
 
-- **FRAMEGEN** — includes optional frame generation for a supported GPU and an active 120 Hz panel.
+- **FRAMEGEN** — includes optional frame generation for a supported GPU and an active 60 Hz or 120 Hz panel.
 - **NONFRAMEGEN** — the same Pink emulator, with framegen controls, capture runtime and LSFG library removed.
 
 Both APKs use `xyz.aethersx2.cpink02` and the same signing certificate. They are interchangeable versions of one app. Install the chosen APK over your existing Pink installation to retain settings, save states and memory cards. Do not uninstall or clear app data to switch versions.
 
-[Update notes](releases/v26500718.md) · [Build instructions](BUILDING.md)
+[Update notes](releases/v26500719.md) · [Build instructions](BUILDING.md)
 
 ---
 
@@ -49,7 +49,7 @@ The SOTC profile is configured for native resolution with the tuned EE cycle rat
 
 The FRAMEGEN build uses LSFG Android and requires your own Lossless.dll from Lossless Scaling. The DLL is not bundled. NONFRAMEGEN includes no framegen capture runtime or DLL setup prompt.
 
-For **30 → 60 FPS without a 60 FPS patch**, turn **60 FPS Mode OFF**, restart the game, and leave **Frame Generation ON** with the display at **120 Hz**. The default 2× multiplier adds one generated frame between real frames; flow stays at **0.25**. The user confirmed this setup working on September 7, 2026. See the [setup and validation notes](releases/v26500718.md).
+For **30 → 60 FPS without a 60 FPS patch**, turn **60 FPS Mode OFF**, restart the game, and leave **Frame Generation ON** with the display at **60 Hz or 120 Hz**. The default 2× multiplier adds one generated frame between real frames; flow stays at **0.25**. The user confirmed 30 → 60 FPS operation on September 7, 2026; v26500719 additionally enables it with the panel set to 60 Hz. See the [setup and validation notes](releases/v26500719.md).
 
 ---
 
