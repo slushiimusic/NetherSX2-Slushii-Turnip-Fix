@@ -49,6 +49,8 @@ The SOTC profile is configured for native resolution with the tuned EE cycle rat
 
 The FRAMEGEN build uses LSFG Android and requires your own Lossless.dll from Lossless Scaling. The DLL is not bundled. NONFRAMEGEN includes no framegen capture runtime or DLL setup prompt.
 
+For **30 → 60 FPS without a 60 FPS patch**, turn **60 FPS Mode OFF**, restart the game, and leave **Frame Generation ON** with the display at **120 Hz**. The default 2× multiplier adds one generated frame between real frames; flow stays at **0.25**. The user confirmed this setup working on September 7, 2026. See the [setup and validation notes](releases/v26500718.md).
+
 ---
 
 ## Project lineage

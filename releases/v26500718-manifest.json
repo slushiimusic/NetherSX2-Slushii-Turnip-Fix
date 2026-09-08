@@ -33,6 +33,11 @@
     "alignment_verified": true,
     "old_green_resource_values_removed": true,
     "nonframegen_native_dependencies_verified": true,
-    "runtime": "Final device check interrupted when Thor disconnected; both final release APKs have not completed on-device gameplay validation."
+    "runtime": "Final device check interrupted when Thor disconnected; both final release APKs have not completed on-device gameplay validation.",
+    "user_report": {
+      "date": "2026-09-07",
+      "result": "User confirmed 30-to-60 FPS frame generation works with 60 FPS patches off.",
+      "scope": "Confirmation of this setup only; the full device test matrix remains incomplete."
+    }
   }
 }
