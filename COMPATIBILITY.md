@@ -2,7 +2,9 @@
 
 ## Xenosaga Episode I: stale image during loading
 
-**Status: reported; no verified fix in v26500722.** A tester reports that loading screens show the title screen, with and without Lossless Scaling and after switching Turnip drivers. The device, game region, exact app version and settings have not been confirmed. This has not been reproduced locally.
+**Status: reported on AYN Thor; no verified fix in v26500722.** The tester confirms the **U.S. version** of Xenosaga Episode I, with **Low-End Performance OFF** and **60 FPS Mode OFF**. During loading, the image can be any previously displayed scene, including the title screen, or sometimes the expected black loading screen. It occurs with and without Lossless Scaling and persists across Turnip drivers. This has not been reproduced locally; the exact installed app version, widescreen and Hardware Download Mode settings remain unconfirmed.
+
+The bundled U.S. profile is `SLUS-20469` / CRC `6D1276AB`. Its shadow/font adjustments and save-point thumbnail patch do not implement the loading-transition fixes discussed below.
 
 The symptom closely matches [PCSX2 issue #6625](https://github.com/PCSX2/pcsx2/issues/6625), where the title screen or another old image appeared after loading. Two hardware-renderer changes addressed that issue in February 2023:
 
@@ -15,7 +17,7 @@ Our retained core reports **v2.2n-3668 (Classic)** and a January 1, 2023 build d
 
 For **Xenosaga only**, select **Game Properties → Graphics → GPU Renderer → Software**, use **Native** resolution, restart the game, and repeat the same loading transition. Compare with hardware rendering at the same point. Software rendering may be slower; this is an isolation test, not a verified performance preset or confirmed fix.
 
-Also record the device, game serial/region, app version and the states of **Low-End Performance**, **60 FPS Mode**, **Widescreen** and **Hardware Download Mode**. The Low-End Performance preset disables hardware readbacks, so an **Accurate** readback comparison is useful if that preset is enabled. Change one setting at a time.
+Record the installed app version and the states of **Widescreen** and **Hardware Download Mode**. Low-End Performance and 60 FPS Mode are already confirmed OFF. Hardware Download Mode is independent: if it is set to disable readbacks, compare **Accurate** for this game and restart before retesting. This comparison is not a confirmed workaround. Change one setting at a time and restore the previous value if it makes no difference.
 
 No Xenosaga-specific 60 FPS patch was found in this release's bundled `pnach60` assets. Its widescreen patch and older core behavior still need to be distinguished from the reported loading-screen failure using a reproducible case.
 
