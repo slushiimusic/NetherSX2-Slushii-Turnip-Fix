@@ -269,7 +269,6 @@ public final class ToggleWatchdog {
         if (prefsUi && activity != null && (now - lastBindMs) >= 1500L) {
             lastBindMs = now;
             PrefCompat.bindVisibleSwitches(activity);
-            ShimAccent.insetSettingsBelowActionBar(activity);
         }
 
         ShimTheme.pollTheme(app);

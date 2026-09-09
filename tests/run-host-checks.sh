@@ -17,6 +17,13 @@ mkdir -p "$CHECK_OUT/host"
 "$JAVA_HOME/bin/java" -cp "$CHECK_OUT/host:$CHECK_OUT:$SDK/platforms/android-35/android.jar" \
   xyz.aethersx2.android.shim.SettingsRegressionTest "$CHECK_OUT/settings-fixture"
 
+# Exercise the real layout listener with controlled Android view geometry.
+mkdir -p "$CHECK_OUT/layout"
+"$JAVA_HOME/bin/javac" -source 11 -target 11 -cp "$CHECK_OUT:$SDK/platforms/android-35/android.jar" \
+  -d "$CHECK_OUT/layout" $(rg --files tests/layout-stubs -g '*.java') tests/SettingsHeaderInsetsTest.java
+"$JAVA_HOME/bin/java" -cp "$CHECK_OUT/layout:$CHECK_OUT:$SDK/platforms/android-35/android.jar" \
+  xyz.aethersx2.android.shim.SettingsHeaderInsetsTest
+
 "${CXX:-c++}" -std=c++17 -O2 -pthread tests/CaptureHandoffTest.cpp -o "$CHECK_OUT/capture-handoff"
 "$CHECK_OUT/capture-handoff"
 

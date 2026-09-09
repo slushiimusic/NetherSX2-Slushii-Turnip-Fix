@@ -267,6 +267,7 @@ final class ShimAccent {
             applySettingsHeaderGradient(activity, dark);
             View decor = window.getDecorView();
             if (decor != null) {
+                SettingsHeaderInsets.attach(activity);
                 applySettingsBeforeFirstDraw(activity, decor, dark);
                 // MainActivity invokes the hook before setContentView(); retry
                 // once the All Games/App Settings AppBar has been inflated.
@@ -398,49 +399,6 @@ final class ShimAccent {
         // strip, rather than the content view, keeps the gradient.
         toolbar.postDelayed(() -> setNavigationStripGradient(toolbar, colors), 350L);
         toolbar.postDelayed(() -> setNavigationStripGradient(toolbar, colors), 900L);
-        insetSettingsBelowActionBar(activity);
-        toolbar.postDelayed(() -> insetSettingsBelowActionBar(activity), 350L);
-        toolbar.postDelayed(() -> insetSettingsBelowActionBar(activity), 900L);
-    }
-
-    /**
-     * Push the Settings content below the gradient header.
-     *
-     * <p>Settings is a ViewPager with a tab strip, and the strip is what tells
-     * the user the other pages exist. Measured on device:
-     * {@code id/tab_layout} occupies [0,0]-[1280,96] while
-     * {@code id/action_bar_container} occupies [0,48]-[1280,176] — the header is
-     * drawn straight over the tabs, and over the first category title too. A
-     * tester reported exactly this: "you can only see the first page … you have
-     * to swipe … no idea that you need to."
-     *
-     * <p>The tabs were never removed; the fullscreen layout used to extend the
-     * gradient into the status bar makes the content start at y=0, and only the
-     * app bar was compensated. Inset the settings root by the header's bottom
-     * edge so the strip sits under it and becomes visible.
-     */
-    static void insetSettingsBelowActionBar(Activity activity) {
-        try {
-            String pkg = activity.getPackageName();
-            int settingsId = activity.getResources().getIdentifier("settings", "id", pkg);
-            int barId = activity.getResources().getIdentifier(
-                    "action_bar_container", "id", pkg);
-            if (settingsId == 0 || barId == 0) return;
-            View settings = activity.findViewById(settingsId);
-            View bar = activity.findViewById(barId);
-            if (settings == null || bar == null) return;
-            int barBottom = bar.getBottom();
-            /* Not laid out yet, or already inset by the platform — either way
-             * padding now would be wrong or doubled. */
-            if (barBottom <= 0 || settings.getTop() >= barBottom) return;
-            if (settings.getPaddingTop() == barBottom) return;
-            settings.setPadding(settings.getPaddingLeft(), barBottom,
-                    settings.getPaddingRight(), settings.getPaddingBottom());
-            Log.i("VulkanShim", "settings inset below action bar (+" + barBottom
-                    + "px) — tab strip visible");
-        } catch (Throwable t) {
-            Log.w("VulkanShim", "settings inset failed: " + t.getMessage());
-        }
     }
 
     private static void extendGradientIntoStatusBar(Activity activity, View appBar) {

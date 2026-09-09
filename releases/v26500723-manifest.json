@@ -1,0 +1,52 @@
+{
+  "FRAMEGEN": {
+    "file": "NetherSX2-Pink-v26500723-FRAMEGEN.apk",
+    "bytes": 164603701,
+    "sha256": "cdce63c0b0df2ed8c31dc8f51fcaa0b6be7ba004457badd00bfe98193dbd8508"
+  },
+  "NONFRAMEGEN": {
+    "file": "NetherSX2-Pink-v26500723-NONFRAMEGEN.apk",
+    "bytes": 146270019,
+    "sha256": "a4d329d70b5f1b082d02e243fd37db24e96d8fa8b8484bc7f9e4c017d6b08c7b"
+  },
+  "versionCode": 26500723,
+  "versionName": "v26500723",
+  "package": "xyz.aethersx2.cpink02",
+  "certificate": "fd348b18565a795b3812a1a363fa5627c20aa7c31b54fa89bf10212b710ce98b",
+  "variant_differences": [
+    "classes.dex",
+    "res/xml/graphics_game_settings_preferences.xml",
+    "res/xml/graphics_preferences.xml",
+    "lib/arm64-v8a/libvulkad.so",
+    "META-INF/NETHERSX.SF",
+    "META-INF/NETHERSX.RSA",
+    "META-INF/MANIFEST.MF"
+  ],
+  "removed_from_nonframegen": [
+    "lib/arm64-v8a/liblsfg-android.so"
+  ],
+  "all_other_entries_identical": true,
+  "adaptive_icons_and_legacy_pngs_verified": true,
+  "installer_and_launcher_labels_match": true,
+  "emulator_core": {
+    "library": "lib/arm64-v8a/libemucore.so",
+    "sha256": "a42535ed6d9a77fdb577209d72df9ef5f2e90328f18417198f814eebcd6a45f9",
+    "reported_version": "v2.2n-3668 (Classic)",
+    "aethersx2_base": 3668,
+    "evidence": "The packaged native getScmVersion JNI function references this version string at virtual address 0xff01f. The library is retained unchanged from v26500722.",
+    "upstream": "https://github.com/Trixarian/NetherSX2-classic"
+  },
+  "framegen_library_sha256": "7f56c157821d0e66d3fe5dbcca4ccc8d0ed0998e8d42f32bffbe1dee6787051d",
+  "validation": {
+    "shared_host_checks_passed": 8,
+    "nonframegen_host_checks_passed": 2,
+    "layout_listener_regression_passed": true,
+    "packaged_accent_calls_layout_listener_verified": true,
+    "tab_pager_resources_unchanged": true,
+    "core_framegen_drivers_patches_icons_match_v26500722": true,
+    "graphics_settings_decoded_xml_identical": true,
+    "signatures_verified": true,
+    "alignment_verified": true,
+    "runtime": "No handheld installation or visual confirmation; device settings and saves were not accessed."
+  }
+}
