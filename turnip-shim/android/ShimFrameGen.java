@@ -557,7 +557,7 @@ public final class ShimFrameGen {
     }
 
     /**
-     * Graphics toggle OFF — stop pipeline but keep the instrument OSD visible.
+     * Graphics toggle OFF — release the overlay and its periodic monitor.
      */
     public static void disableOverlay(Context ctx) {
         if (ctx == null) return;
@@ -581,11 +581,13 @@ public final class ShimFrameGen {
         if (act != null) {
             hostActivity = act;
             if (contextUp) stopContext(act);
-            ensureInstrumentOsd(act);
             OsdPrefs.updateStockOsdPolicy(ctx);
         }
         overlayAdded = false;
-        note(ctx.getExternalFilesDir(null), "framegen disabled (instrument OSD kept)");
+        hideInstrument();
+        stopOsdTicking();
+        osdIrRecoveryGen++;
+        note(ctx.getExternalFilesDir(null), "framegen disabled (monitor stopped)");
     }
 
     /** User chose restart after IR change broke framegen. */
@@ -809,9 +811,7 @@ public final class ShimFrameGen {
         // A real game exit releases its Activity and stops the 500 ms monitor.
         // The recreation path above deliberately keeps the monitor alive.
         overlayRuntimeEnabled = false;
-        if (osdTickHandler != null && osdTickRunnable != null)
-            osdTickHandler.removeCallbacks(osdTickRunnable);
-        osdTickScheduled = false;
+        stopOsdTicking();
         osdIrRecoveryGen++;
         promoteRetryGen++;
         osd = null;
@@ -2689,8 +2689,9 @@ public final class ShimFrameGen {
         // Resume does not own a pending context or output-bind pause.
         attachOsdIfEnabled(activity);
         ensureOsdTicking();
-        scheduleOsdIrRecovery(activity);
         OsdPrefs.updateStockOsdPolicy(activity);
+        if (!needsOsdTicks()) return;
+        scheduleOsdIrRecovery(activity);
         if (irPausePending)
             scheduleIrRecoveryFallback(activity, 1200L);
         else if (!osdIsWindowHealthy())
@@ -2755,7 +2756,7 @@ public final class ShimFrameGen {
     private static volatile boolean irRecovering = false;
     private static volatile boolean irPausePending = false;
     private static volatile boolean sessionDisabled = false;
-    private static volatile boolean overlayRuntimeEnabled = true;
+    private static volatile boolean overlayRuntimeEnabled = false;
     private static volatile boolean irRestartPromptShown = false;
     private static android.os.Handler irRestartPromptHandler = null;
     private static Runnable irRestartPromptCheck = null;
@@ -3410,16 +3411,37 @@ public final class ShimFrameGen {
         }
     }
 
-    /** Keep the tick loop alive; self-heals detached OSD with backoff. */
+    /** Off must not keep reading files, walking windows and polling JNI at 2 Hz.
+     * ON and IR recovery still need monitoring even when every OSD row is hidden.
+     * The settings watchdog / enableOverlay resumes it when the user enables FG.
+     */
+    private static boolean needsOsdTicks() {
+        return FramegenBuild.AVAILABLE && !sessionDisabled
+                && (overlayRuntimeEnabled || contextUp || overlayAdded
+                    || irPausePending || irRecovering);
+    }
+
+    private static void stopOsdTicking() {
+        if (osdTickHandler != null && osdTickRunnable != null)
+            osdTickHandler.removeCallbacks(osdTickRunnable);
+        osdTickScheduled = false;
+    }
+
+    /** Keep active framegen recovery alive; sleep completely while it is off. */
     private static void ensureOsdTicking() {
+        if (!needsOsdTicks()) {
+            stopOsdTicking();
+            return;
+        }
         if (osdTickHandler == null)
             osdTickHandler = new android.os.Handler(android.os.Looper.getMainLooper());
         if (osdTickRunnable == null) {
             osdTickRunnable = new Runnable() {
                 @Override public void run() {
+                    osdTickScheduled = false;
+                    if (!needsOsdTicks()) return;
                     tickOsd();
-                    if (osdTickHandler != null)
-                        osdTickHandler.postDelayed(this, 500);
+                    ensureOsdTicking();
                 }
             };
         }

@@ -2,7 +2,12 @@
 
 NetherSX2 tuned for the Retroid Pocket Nova and AYN Thor: a Turnip-driver build focused on getting the most performance possible from a handheld while keeping the setup simple.
 
-## Gameplay update candidate: v26500800
+## Gameplay update candidate: v26500801
+
+Frame Generation OFF now stops its periodic monitor. Returning to gameplay
+applies OSD settings once, with further reloads only for a real preference
+repair or a failed apply. This removes redundant work; it does not guarantee
+locked 60 FPS across games.
 
 Common Graphics controls now come first: renderer, resolution, aspect ratio,
 widescreen, 60 FPS patches, optional frame generation and Show FPS. Expand
@@ -17,7 +22,7 @@ OpenGL or Software now survives app startup. Flow remains 0.25; artifact
 protection remains disabled.
 
 This is a test candidate, not a claim that all games or devices are fixed.
-[Download the preview](https://github.com/slushiimusic/NetherSX2-Slushii-Turnip-Fix/releases/tag/v26500800) · [Update notes and validation](releases/v26500800.md).
+[Download the preview](https://github.com/slushiimusic/NetherSX2-Slushii-Turnip-Fix/releases/tag/v26500801) · [Update notes and validation](releases/v26500801.md).
 
 ### Daijisho
 
@@ -60,7 +65,7 @@ Performance depends on the game, scene, device and settings. Generated display f
 
 ## Reported compatibility issue
 
-**Xenosaga Episode I:** a tester reports the title screen or another stale image during loading, including with framegen off. This is under investigation and closely resembles an older PCSX2 hardware-renderer issue. **Neither v26500723 nor the v26500800 preview includes a verified fix.** See the [evidence and diagnostic comparison](COMPATIBILITY.md).
+**Xenosaga Episode I:** a tester reports the title screen or another stale image during loading, including with framegen off. This is under investigation and closely resembles an older PCSX2 hardware-renderer issue. **Neither v26500723 nor the v26500801 preview includes a verified fix.** See the [evidence and diagnostic comparison](COMPATIBILITY.md).
 
 ---
 

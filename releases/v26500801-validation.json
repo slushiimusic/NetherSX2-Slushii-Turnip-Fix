@@ -1,0 +1,120 @@
+{
+  "date_utc": "2026-10-11",
+  "status": "preview",
+  "package_verification": {
+    "FRAMEGEN": {
+      "file": "NetherSX2-Pink-v26500801-FRAMEGEN.apk",
+      "bytes": 164602280,
+      "sha256": "380861b449984152492c9cebf14892a6c4f598c8a8f0d81cd30b4751640e87ec"
+    },
+    "NONFRAMEGEN": {
+      "file": "NetherSX2-Pink-v26500801-NONFRAMEGEN.apk",
+      "bytes": 146268350,
+      "sha256": "3b71e47177d92f6b2a8a44a7d4873b53ed35b552d1dd4547e38b8d45f42ee7f8"
+    },
+    "versionCode": 26500801,
+    "versionName": "v26500801",
+    "package": "xyz.aethersx2.cpink02",
+    "certificate": "fd348b18565a795b3812a1a363fa5627c20aa7c31b54fa89bf10212b710ce98b",
+    "variant_differences": [
+      "classes.dex",
+      "res/xml/graphics_game_settings_preferences.xml",
+      "res/xml/graphics_preferences.xml",
+      "lib/arm64-v8a/libvulkad.so",
+      "META-INF/NETHERSX.SF",
+      "META-INF/NETHERSX.RSA",
+      "META-INF/MANIFEST.MF"
+    ],
+    "removed_from_nonframegen": [
+      "lib/arm64-v8a/liblsfg-android.so"
+    ],
+    "all_other_entries_identical": true,
+    "adaptive_icons_and_legacy_pngs_verified": true,
+    "installer_and_launcher_labels_match": true
+  },
+  "host_checks": {
+    "shared_regressions": "passed",
+    "nonframegen_regressions": "passed",
+    "graphics_xml_both_variants": "passed",
+    "new_coverage": [
+      "FG OFF has no periodic monitor",
+      "stale monitor tick stays idle after OFF",
+      "ON and IR recovery can restart monitoring",
+      "unchanged OSD resume applies once",
+      "native OSD stomp still repaired",
+      "stale resume callbacks ignored",
+      "failed native apply retried",
+      "explicit FPS OFF retained"
+    ]
+  },
+  "retained_libraries": {
+    "libemucore.so": "a42535ed6d9a77fdb577209d72df9ef5f2e90328f18417198f814eebcd6a45f9",
+    "liblsfg-android.so": "7f56c157821d0e66d3fe5dbcca4ccc8d0ed0998e8d42f32bffbe1dee6787051d"
+  },
+  "device_checks": {
+    "device": "Retroid Pocket Nova",
+    "game": "Ultimate Spider-Man (USA), SLUS-20870 / FDD12792",
+    "active_display_hz": 60,
+    "installed_build": "v26500801 FRAMEGEN, with framegen OFF",
+    "installed_artifact_hash_verified": true,
+    "daijisho_launch": "passed",
+    "framegen_off_preserved_after_update": true,
+    "4_3_resolution_change": "1.5x to native; new 512x448 GS allocation and live apply observed",
+    "widescreen_resolution_change": "native to 1.5x; widescreen reboot and 16:9 gameplay output observed",
+    "fps_osd": "ON visible in 4:3 and widescreen gameplay; OFF visually confirmed after test",
+    "resume_applies": "Five unchanged OSD applySettings calls observed in old resume; one observed in new startup",
+    "motion_test": "Two 19-second touchscreen camera pans in widescreen; changed view confirmed",
+    "native_fps_observed": "approximately 59.94 FPS",
+    "fatal_exceptions_in_captured_process_log": 0,
+    "save_preservation": {
+      "original_save_card_files": 8,
+      "original_configs": 7,
+      "all_original_files_byte_identical": true,
+      "added_session_backup": "sstates/SLUS-20870 (FDD12792).04.p2s",
+      "new_slot_matches_local_backup": true
+    },
+    "restored_settings": "Framegen OFF, IR 1.5x, widescreen OFF, aspect Auto Standard, FPS OFF, Host VSync OFF, touchscreen controls None. All seven backed-up external configurations byte-identical."
+  },
+  "pacing_samples": {
+    "baseline-40s": {
+      "count": 2654,
+      "seconds": 44.26704441,
+      "median_ms": 16.673073,
+      "p99_ms": 16.676094,
+      "over25ms": 1,
+      "max_ms": 50.017813
+    },
+    "updated-4by3-1p5": {
+      "count": 2638,
+      "seconds": 44.034055556,
+      "median_ms": 16.673281,
+      "p99_ms": 16.675781,
+      "over25ms": 2,
+      "max_ms": 66.69375
+    },
+    "updated-wide-camera-copy-active": {
+      "count": 2649,
+      "seconds": 44.182371181,
+      "median_ms": 16.672553,
+      "p99_ms": 16.675364,
+      "over25ms": 2,
+      "max_ms": 33.345469
+    },
+    "updated-wide-vsync-copy-active": {
+      "count": 3294,
+      "seconds": 54.971922635,
+      "median_ms": 16.673282,
+      "p99_ms": 16.676614,
+      "over25ms": 2,
+      "max_ms": 66.68901
+    }
+  },
+  "limits": [
+    "All samples were collected while a large background ROM transfer to the SD card remained active.",
+    "SurfaceFlinger timestamps measure buffer presentation, not unique simulated game frames.",
+    "Short stationary-scene and camera-pan checks are not a sustained traversal benchmark.",
+    "Isolated missed refreshes remain; no locked-60 or causal before/after performance claim.",
+    "Host VSync trial did not eliminate outliers; original OFF setting restored.",
+    "Thor, other games and framegen-ON gameplay not physically retested with this build."
+  ]
+}

@@ -951,6 +951,7 @@ public final class TurnipConfig {
     /** Stores written but GS has not reopened yet (boot, paused settings, applySettings no-op). */
     private static volatile boolean pendingGsIrApply;
     private static volatile boolean pendingOsdApply;
+    private static int osdResumeGeneration;
     private static volatile String pendingGsIr;
     private static final android.os.Handler LIVE_IR_HANDLER =
             new android.os.Handler(android.os.Looper.getMainLooper());
@@ -2298,13 +2299,20 @@ public final class TurnipConfig {
         rememberFiles(ctx);
         OsdPrefs.rememberUserIntent(ctx);
         final Context app = ctx.getApplicationContext();
+        // One apply per resume; later callbacks only repair a real native stomp.
+        // Old resume callbacks must not reload settings in a newer session.
+        pendingOsdApply = true;
+        final int generation = ++osdResumeGeneration;
         long[] osdDelays = {500L, 1500L, 3000L};
         for (long d : osdDelays) {
-            LIVE_IR_HANDLER.postDelayed(() -> reassertOsdAfterResume(app), d);
+            LIVE_IR_HANDLER.postDelayed(() -> {
+                if (generation == osdResumeGeneration) reassertOsdAfterResume(app);
+            }, d);
         }
         long[] delays = {BOOT_GRACE_MS, BOOT_GRACE_MS + 1500L};
         for (long d : delays) {
             LIVE_IR_HANDLER.postDelayed(() -> {
+                if (generation != osdResumeGeneration || !emuResumed) return;
                 flushPendingGsIr(app);
                 flushPendingFsr(app);
                 flushPendingOsdApply(app);
@@ -2316,7 +2324,8 @@ public final class TurnipConfig {
 
     static void reassertOsdAfterResume(Context ctx) {
         if (ctx == null || !emuResumed) return;
-        applyOsdSettingsLive(ctx);
+        boolean repaired = OsdPrefs.restoreIfStomped(ctx);
+        if (pendingOsdApply || repaired) applyOsdSettingsLive(ctx);
     }
 
     static void flushPendingOsdApply(Context ctx) {
@@ -2335,12 +2344,13 @@ public final class TurnipConfig {
             pendingOsdApply = true;
             return;
         }
-        pendingOsdApply = false;
         try {
             Class.forName("xyz.aethersx2.android.NativeLibrary")
                     .getMethod("applySettings").invoke(null);
+            pendingOsdApply = false;
             android.util.Log.i("VulkanShim", "NativeLibrary.applySettings() (OSD toggle)");
         } catch (Throwable t) {
+            pendingOsdApply = true;
             android.util.Log.w("VulkanShim", "applyOsdSettingsLive: " + t.getMessage());
         }
     }
@@ -3244,6 +3254,7 @@ public final class TurnipConfig {
     public static void onEmulationPaused(Context ctx) {
         if (ctx != null) OsdPrefs.rememberUserIntent(ctx);
         emuResumed = false;
+        osdResumeGeneration++;
         if (!nativeBool("hasEmulationThread"))
             emulationResumeUptimeMs = 0L;
     }
