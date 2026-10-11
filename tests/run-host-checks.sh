@@ -13,9 +13,11 @@ trap 'rm -rf "$CHECK_OUT"' EXIT
 # Host doubles replace Android/VM boundaries only; all shim logic above is real.
 mkdir -p "$CHECK_OUT/host"
 "$JAVA_HOME/bin/javac" -source 11 -target 11 -cp "$CHECK_OUT:$SDK/platforms/android-35/android.jar" \
-  -d "$CHECK_OUT/host" $(rg --files tests/host-stubs -g '*.java') tests/SettingsRegressionTest.java
+  -d "$CHECK_OUT/host" $(rg --files tests/host-stubs -g '*.java') tests/SettingsRegressionTest.java tests/GameplayStartupTest.java
 "$JAVA_HOME/bin/java" -cp "$CHECK_OUT/host:$CHECK_OUT:$SDK/platforms/android-35/android.jar" \
   xyz.aethersx2.android.shim.SettingsRegressionTest "$CHECK_OUT/settings-fixture"
+"$JAVA_HOME/bin/java" -cp "$CHECK_OUT/host:$CHECK_OUT:$SDK/platforms/android-35/android.jar" \
+  xyz.aethersx2.android.shim.GameplayStartupTest "$CHECK_OUT/startup-fixture"
 
 # Exercise the real layout listener with controlled Android view geometry.
 mkdir -p "$CHECK_OUT/layout"

@@ -293,8 +293,8 @@ public final class HandheldTier {
                     "EmuCore/GS/texture_preloading", "1");
             TurnipConfig.applyGsListPrefGlobal(ctx, files,
                     "EmuCore/GS/MaxAnisotropy", "0");
-            TurnipConfig.applyGsListPrefGlobal(ctx, files,
-                    "EmuCore/GS/HWDownloadMode", "1");
+            // Readbacks affect game correctness. Keep the user's choice; the
+            // fresh-install default is Accurate, even on slower hardware.
             TurnipConfig.applyBoolPrefGlobal(ctx, files,
                     "EmuCore/GS/OsdShowGPU", false);
             TurnipConfig.applyBoolPrefGlobal(ctx, files,
@@ -310,8 +310,7 @@ public final class HandheldTier {
                     "EmuCore/GS/texture_preloading", "2");
             TurnipConfig.applyGsListPrefGlobal(ctx, files,
                     "EmuCore/GS/MaxAnisotropy", "0");
-            TurnipConfig.applyGsListPrefGlobal(ctx, files,
-                    "EmuCore/GS/HWDownloadMode", "0");
+
             TurnipConfig.applyBoolPrefGlobal(ctx, files,
                     "EmuCore/GS/OsdShowGPU", true);
             TurnipConfig.applyBoolPrefGlobal(ctx, files,

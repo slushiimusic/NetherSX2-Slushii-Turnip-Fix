@@ -36,7 +36,8 @@ public final class ShimFrameGen {
 
     private static final String TAG = "VulkanShim";
     private static boolean tried = false;
-    private static boolean shadersReady = false;
+    private static volatile boolean shadersReady = false;
+    private static final Object PREPARE_LOCK = new Object();
     /** Why prepare() returned false — shown on OSD when fg_osd=on. */
     private static String prepareBlockReason = "";
 
@@ -71,7 +72,11 @@ public final class ShimFrameGen {
      *
      * @return true when the shaders are extracted and the pipeline is usable.
      */
-    public static synchronized boolean prepare(Context ctx) {
+    public static boolean prepare(Context ctx) {
+        synchronized (PREPARE_LOCK) { return prepareLocked(ctx); }
+    }
+
+    private static boolean prepareLocked(Context ctx) {
         ensureVulkadLoaded();
         if (!FramegenBuild.AVAILABLE) {
             prepareBlockReason = "not available";
@@ -247,7 +252,6 @@ public final class ShimFrameGen {
          * it and will rebuild once, which is the right answer for a new dll. */
         if (extracted || !stampMatches) writeStamp(cacheDir, sha == null ? "unknown" : sha);
 
-        shadersReady = true;
         note(files, "shaders extracted AND driver-validated in "
                 + cacheDir.getAbsolutePath() + " - in-process frame generation is available");
         /* Hand the bridge to native from a Java thread so fg_source.cpp never
@@ -261,11 +265,12 @@ public final class ShimFrameGen {
             shadersReady = false;
             return failPrepare();
         }
+        shadersReady = true;
         return true;
     }
 
     /** True once the pipeline is loaded and its shaders unpacked. */
-    public static synchronized boolean ready() {
+    public static boolean ready() {
         return shadersReady && !displaySuspended;
     }
 
@@ -504,7 +509,7 @@ public final class ShimFrameGen {
             if (!preparing) {
                 preparing = true;
                 tried = false;
-                final Context prepCtx = ctx;
+                final Context prepCtx = ctx.getApplicationContext();
                 new Thread(new Runnable() {
                     @Override public void run() {
                         try {
@@ -521,7 +526,7 @@ public final class ShimFrameGen {
                             return;
                         }
                         MAIN_FG.post(new Runnable() {
-                            @Override public void run() { enableOverlay(prepCtx); }
+                            @Override public void run() { finishPreparation(prepCtx); }
                         });
                     }
                 }, "shim-fg-prepare").start();
@@ -540,6 +545,15 @@ public final class ShimFrameGen {
             attachOverlay(act);
         else if (!contextUp)
             ensurePipelineStarted(act);
+    }
+
+    /** A completed worker must obey the latest OFF choice and current activity. */
+    static void finishPreparation(Context app) {
+        if (!shadersReady || !overlayRuntimeEnabled || sessionDisabled || displaySuspended
+                || !confSaysOverlayOn(app)) return;
+        Activity activity = ToggleWatchdog.foregroundActivity();
+        if (activity == null || !isEmulationActivity(activity) || !emuForeground) return;
+        enableOverlay(activity);
     }
 
     /**
@@ -792,12 +806,22 @@ public final class ShimFrameGen {
          * false (rc=1 / rc=-40 before the lsfgInitLive fix). Tear it down on a
          * real exit or the next game hits rc=-40 forever. */
         queueContextDestroy();
+        // A real game exit releases its Activity and stops the 500 ms monitor.
+        // The recreation path above deliberately keeps the monitor alive.
+        overlayRuntimeEnabled = false;
+        if (osdTickHandler != null && osdTickRunnable != null)
+            osdTickHandler.removeCallbacks(osdTickRunnable);
+        osdTickScheduled = false;
+        osdIrRecoveryGen++;
+        promoteRetryGen++;
+        osd = null;
+        osdLp = null;
+        osdWm = null;
         osdAdded = false;
         overlayAdded = false;
         osdWindowAttached = false;
         osdAttachScheduled = false;
         osdRaisePending = false;
-        /* Keep TextView across short activity hops — reattach on resume. */
         outputView = null;
         outputLp = null;
         outputWm = null;
@@ -3326,7 +3350,7 @@ public final class ShimFrameGen {
             } else {
                 tv = new android.widget.TextView(activity);
                 tv.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 11f);
-                tv.setTextColor(0xFF00FF88);
+                tv.setTextColor(0xFF00E5E5);
                 tv.setShadowLayer(3f, 0f, 0f, 0xFF000000);
                 tv.setBackgroundColor(0xAA000000);
                 tv.setPadding(14, 10, 14, 10);
@@ -3420,7 +3444,8 @@ public final class ShimFrameGen {
                     if (gen != osdIrRecoveryGen) return;
                     Activity act = hostActivity;
                     if (act == null) act = ToggleWatchdog.foregroundActivity();
-                    if (act == null || act.isFinishing()) return;
+                    if (act == null || act.isFinishing() || act.isDestroyed()
+                            || !shouldShowInstrument(act) || dialogWindowPresent(act)) return;
                     if (!osdIsWindowHealthy()) {
                         if (osd == null || osdLp == null)
                             attachOsdIfEnabled(act);
@@ -3446,7 +3471,8 @@ public final class ShimFrameGen {
         decor.postDelayed(new Runnable() {
             @Override public void run() {
                 osdRaisePending = false;
-                if (activity.isFinishing()) return;
+                if (activity.isFinishing() || activity.isDestroyed()
+                        || !shouldShowInstrument(activity) || dialogWindowPresent(activity)) return;
                 hostActivity = activity;
                 long now = android.os.SystemClock.uptimeMillis();
                 if (now - lastOsdRaiseMs < OSD_RAISE_DEBOUNCE_MS) {
@@ -3653,9 +3679,11 @@ public final class ShimFrameGen {
         }
         /* Follow the Widescreen toggle / Aspect Ratio setting live. */
         if (act != null && contextUp) syncOutputAspect(act);
-        /* Get out of the way of the pause/settings menu. */
+        /* An intentionally hidden overlay is not a broken window. Keep the
+         * native recovery below running without raising it over the menu. */
+        boolean menuOpen = act != null && dialogWindowPresent(act);
+        boolean instrumentWanted = act != null && shouldShowInstrument(act);
         if (osd != null && act != null) {
-            boolean menuOpen = dialogWindowPresent(act);
             /* ALL STOCK OSD TOGGLES OFF MEANS "SHOW ME NOTHING".
              *
              * This instrument exists to mirror those switches, and every row it
@@ -3670,7 +3698,7 @@ public final class ShimFrameGen {
                 Log.i(TAG, "framegen instrument gate: anyStatOn=" + anyOn
                         + " " + OsdPrefs.statSummary(act));
             }
-            boolean hide = menuOpen || !shouldShowInstrument(act);
+            boolean hide = menuOpen || !instrumentWanted;
             int want = hide ? android.view.View.GONE : android.view.View.VISIBLE;
             if (osd.getVisibility() != want) {
                 osd.setVisibility(want);
@@ -3690,28 +3718,30 @@ public final class ShimFrameGen {
          * on one sample dropped and recreated the whole TextView, which is a
          * second of the instrument vanishing for no reason. */
         if (act != null && osd != null) {
-            if (!shouldShowInstrument(act)) {
+            if (!instrumentWanted) {
                 if (++osdHideVotes >= 2) { hideInstrument(); osdHideVotes = 0; }
             } else {
                 osdHideVotes = 0;
             }
         }
-        if (!osdIsWindowHealthy()) {
-            osdWindowAttached = false;
-            long now = android.os.SystemClock.uptimeMillis();
-            if (act != null && now - lastOsdAttachAttemptMs >= OSD_ATTACH_BACKOFF_MS) {
-                lastOsdAttachAttemptMs = now;
-                if (osd == null || osdLp == null)
-                    attachOsdIfEnabled(act);
-                else if (outputView != null && outputView.isAttachedToWindow())
+        if (instrumentWanted && !menuOpen) {
+            if (!osdIsWindowHealthy()) {
+                osdWindowAttached = false;
+                long now = android.os.SystemClock.uptimeMillis();
+                if (act != null && now - lastOsdAttachAttemptMs >= OSD_ATTACH_BACKOFF_MS) {
+                    lastOsdAttachAttemptMs = now;
+                    if (osd == null || osdLp == null)
+                        attachOsdIfEnabled(act);
+                    else if (outputView != null && outputView.isAttachedToWindow())
+                        raiseOsdAboveOutput(act, 0);
+                    else
+                        reattachOsdToken(act, 0);
+                }
+            } else if (outputView != null && outputView.isAttachedToWindow()) {
+                long now = android.os.SystemClock.uptimeMillis();
+                if (now - lastOsdRaiseMs >= OSD_RAISE_DEBOUNCE_MS * 4)
                     raiseOsdAboveOutput(act, 0);
-                else
-                    reattachOsdToken(act, 0);
             }
-        } else if (outputView != null && outputView.isAttachedToWindow()) {
-            long now = android.os.SystemClock.uptimeMillis();
-            if (now - lastOsdRaiseMs >= OSD_RAISE_DEBOUNCE_MS * 4)
-                raiseOsdAboveOutput(act, 0);
         }
         updateOsd();
     }
@@ -3969,8 +3999,8 @@ public final class ShimFrameGen {
             neverPushedTicks = 0;
             if (wantFps)
                 sb.append(String.format(java.util.Locale.US,
-                        "\nSource %.0f  |  Generated %.0f  |  Output %.0f fps",
-                        realFps, genFps, postFps));
+                        "\nSource %.0f FPS  |  Display %.0f FPS",
+                        realFps, postFps));
             if (wantFps && qualityFallback) sb.append("\nArtifact protection active");
             if (wantSpeed || wantTimes) {
                 sb.append('\n');
@@ -4015,7 +4045,8 @@ public final class ShimFrameGen {
                 sb.append(String.format(java.util.Locale.US,
                         "\npushed %d  skipped %d  posted %d  gen %d  uniq %.0f",
                         pushed, skipped, posted, generated, uniqueFps));
-            osd.setText(sb.toString());
+            String nextText = sb.toString();
+            if (!nextText.contentEquals(osd.getText())) osd.setText(nextText);
         } catch (Throwable ignored) { }
     }
 

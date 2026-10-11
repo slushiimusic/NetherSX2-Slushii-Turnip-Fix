@@ -2,6 +2,39 @@
 
 NetherSX2 tuned for the Retroid Pocket Nova and AYN Thor: a Turnip-driver build focused on getting the most performance possible from a handheld while keeping the setup simple.
 
+## Gameplay update candidate: v26500800
+
+Common Graphics controls now come first: renderer, resolution, aspect ratio,
+widescreen, 60 FPS patches, optional frame generation and Show FPS. Expand
+**Advanced graphics** for driver selection, filters and compatibility options.
+Existing settings remain saved. New installs start at native resolution with
+accurate readbacks. The performance preset no longer changes readback mode.
+
+The update removes shader preparation from the game-start UI path, prevents a
+late prepare callback from undoing Frame Generation OFF, coalesces repeated
+settings work, and stops the framegen monitor after a game exits. Choosing
+OpenGL or Software now survives app startup. Flow remains 0.25; artifact
+protection remains disabled.
+
+This is a test candidate, not a claim that all games or devices are fixed.
+[Download the preview](https://github.com/slushiimusic/NetherSX2-Slushii-Turnip-Fix/releases/tag/v26500800) · [Update notes and validation](releases/v26500800.md).
+
+### Daijisho
+
+Install the optional **Slushii Daijisho Connector** and select
+**ps2 - NetherSX2 Turnip** as the PS2 player in Daijisho. The connector uses
+that existing entry's package/component and opens the installed Pink app.
+Daijisho requires a visible launcher entry, so the connector adds a clearly
+named helper icon. Pink keeps its original package and data; the connector
+contains no emulator core or save storage. Do not uninstall Pink. The **Classic** entry still points
+to the separate Classic app.
+
+If a real app already uses `xyz.aethersx2.tturnip`, keep it: do not uninstall it
+to install the connector. Instead edit a Daijisho player to target
+`xyz.aethersx2.cpink02/xyz.aethersx2.android.EmulationActivity`, retaining the
+`bootPath {file.uri}` argument. Add your game folder in Pink first so it has
+permission to open those files. See [connector details](compat/daijisho/README.md).
+
 ## Download v26500723
 
 Choose one build from the [latest release](https://github.com/slushiimusic/NetherSX2-Slushii-Turnip-Fix/releases/latest):
@@ -21,13 +54,13 @@ v26500723 fixes the hidden tabs in Control Settings. Both settings screens now k
 
 This started from wanting to squeeze as much real performance as possible out of the Retroid Pocket Nova. The focus is native-resolution playability, reliable frame pacing, and settings that make sense for the device instead of chasing a one-size-fits-all preset.
 
-For now, *Shadow of the Colossus* and *Metal Gear Solid 3: Subsistence* will only hit ~60 FPS at native resolution, with heavier moments dipping toward 50 FPS. Results vary with the game area, game version, and individual settings.
+Performance depends on the game, scene, device and settings. Generated display frames do not increase emulation speed. Start at native resolution and raise it only when gameplay remains steady.
 
 ---
 
 ## Reported compatibility issue
 
-**Xenosaga Episode I:** a tester reports the title screen or another stale image during loading, including with framegen off. This is under investigation and closely resembles an older PCSX2 hardware-renderer issue. **v26500723 does not include a verified fix.** See the [evidence and diagnostic comparison](COMPATIBILITY.md).
+**Xenosaga Episode I:** a tester reports the title screen or another stale image during loading, including with framegen off. This is under investigation and closely resembles an older PCSX2 hardware-renderer issue. **Neither v26500723 nor the v26500800 preview includes a verified fix.** See the [evidence and diagnostic comparison](COMPATIBILITY.md).
 
 ---
 

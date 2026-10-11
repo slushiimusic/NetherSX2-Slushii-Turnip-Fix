@@ -40,16 +40,20 @@ public final class ToggleWatchdog {
     private static long lastInGameThemeMs;
     private static Boolean cachedPrefsUi;
     private static long cachedPrefsUiMs;
+    private static WeakReference<Activity> cachedPrefsActivity;
+    private static Runnable pendingActivityPoll;
 
     /** Cached — hasVisiblePreferenceUi walks the whole decor tree. */
     private static boolean prefsUiVisible(Activity activity) {
         if (activity == null) return false;
         long now = android.os.SystemClock.uptimeMillis();
-        if (cachedPrefsUi != null && (now - cachedPrefsUiMs) < 500L)
+        if (cachedPrefsUi != null && cachedPrefsActivity != null
+                && cachedPrefsActivity.get() == activity && (now - cachedPrefsUiMs) < 500L)
             return cachedPrefsUi;
         cachedPrefsUi = ShimTheme.isSettingsActivity(activity)
                 || PrefCompat.hasVisiblePreferenceUi(activity);
         cachedPrefsUiMs = now;
+        cachedPrefsActivity = new WeakReference<>(activity);
         return cachedPrefsUi;
     }
 
@@ -64,7 +68,13 @@ public final class ToggleWatchdog {
     public static void pollActivity(Activity activity) {
         if (activity == null) return;
         currentActivity = new WeakReference<>(activity);
-        H.post(() -> syncFromSharedPrefs(activity.getApplicationContext(), activity));
+        if (pendingActivityPoll != null) H.removeCallbacks(pendingActivityPoll);
+        pendingActivityPoll = () -> {
+            pendingActivityPoll = null;
+            if (!activity.isFinishing() && !activity.isDestroyed())
+                syncFromSharedPrefs(activity.getApplicationContext(), activity);
+        };
+        H.post(pendingActivityPoll);
     }
 
     /** Foreground Activity, for the restart prompt. Null when nothing is on screen. */

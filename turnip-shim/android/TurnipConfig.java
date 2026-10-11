@@ -2768,16 +2768,12 @@ public final class TurnipConfig {
      * {@link #applyInternalUpscaleMultiplierAllGames}.
      */
     /** Shipped default Internal Resolution when the user has never picked one. */
-    private static final String DEFAULT_IR = "1.500000";
+    private static final String DEFAULT_IR = "1.000000";
 
     /**
-     * Seed Internal Resolution to 1.5x on a device that has never chosen one.
-     *
-     * Native (1x) is soft on a 1080p panel and 2x is the top of what framegen
-     * can carry on this SoC -- at IR 2.5 the cost guard trips and turns frame
-     * generation off outright. 1.5x is the setting that looks sharp and still
-     * leaves the interpolator its budget, so it is the better out-of-the-box
-     * value than either end.
+     * Start at native resolution when no user choice exists, leaving more
+     * GPU time for gameplay and optional frame generation. Resolution can be
+     * raised from the common Graphics controls.
      *
      * ONLY seeds when nothing was ever saved. readUserIr() returns null in
      * exactly that case -- "the user has no opinion yet" -- and is documented

@@ -9,6 +9,8 @@ from axml_manifest import find_pool_and_header, iter_elements
 from axml_replace_strings import replace_axml_strings
 from launcher_branding import BACKGROUND, compile_background, patch_application_label
 import zipfile
+import re
+from gameplay_preferences import simplify
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -77,11 +79,21 @@ def main():
     merged_dex = open(os.path.join(HERE, "merged-classes.dex"), "rb").read()
 
     zin = zipfile.ZipFile(src, "r")
+    expanded_attribute_id = None
+    if os.environ.get("NETHER_PINK_LAUNCHER_BRANDING") == "1":
+        aapt = os.path.join(os.environ.get("ANDROID_HOME", os.path.expanduser("~/Library/Android/sdk")),
+                            "build-tools", "35.0.0", "aapt")
+        resources = subprocess.check_output([aapt, "dump", "resources", src], text=True)
+        match = re.search(r"spec resource (0x[0-9a-f]+) [^\s]+:attr/initialExpandedChildrenCount:", resources)
+        if not match: raise ValueError("Base lacks expandable preference support")
+        expanded_attribute_id = int(match.group(1), 16)
     patched_gfx = {}
     for xml in GFX_XMLS:
         if xml not in zin.namelist():
             sys.exit("error: %s missing from %s" % (xml, src))
         patched_gfx[xml] = patch_gfx_xml(zin.read(xml))
+        if expanded_attribute_id is not None:
+            patched_gfx[xml] = simplify(patched_gfx[xml], expanded_attribute_id)
         print("patched %s (%d bytes)" % (xml, len(patched_gfx[xml])))
 
     open("/tmp/_manifest_in.xml", "wb").write(zin.read(MANIFEST))

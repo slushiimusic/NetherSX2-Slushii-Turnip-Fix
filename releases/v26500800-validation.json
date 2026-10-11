@@ -1,0 +1,78 @@
+{
+  "date_utc": "2026-10-11",
+  "status": "preview",
+  "package_verification": {
+    "FRAMEGEN": {
+      "file": "NetherSX2-Pink-v26500800-FRAMEGEN.apk",
+      "bytes": 164602624,
+      "sha256": "a3ef4ebcbd07ceec9a5dd7b0e06f40ecb9dd67f166a9037b513664eed7dba0d3"
+    },
+    "NONFRAMEGEN": {
+      "file": "NetherSX2-Pink-v26500800-NONFRAMEGEN.apk",
+      "bytes": 146268870,
+      "sha256": "96c472da02266edbb568b80b50d0b99b3b5b3c9fa11d8775038b3856b2e10eff"
+    },
+    "versionCode": 26500800,
+    "versionName": "v26500800",
+    "package": "xyz.aethersx2.cpink02",
+    "certificate": "fd348b18565a795b3812a1a363fa5627c20aa7c31b54fa89bf10212b710ce98b",
+    "variant_differences": [
+      "classes.dex",
+      "res/xml/graphics_game_settings_preferences.xml",
+      "res/xml/graphics_preferences.xml",
+      "lib/arm64-v8a/libvulkad.so",
+      "META-INF/NETHERSX.SF",
+      "META-INF/NETHERSX.RSA",
+      "META-INF/MANIFEST.MF"
+    ],
+    "removed_from_nonframegen": [
+      "lib/arm64-v8a/liblsfg-android.so"
+    ],
+    "all_other_entries_identical": true,
+    "adaptive_icons_and_legacy_pngs_verified": true,
+    "installer_and_launcher_labels_match": true
+  },
+  "connector": {
+    "package": "xyz.aethersx2.tturnip",
+    "version_code": 1,
+    "sha256": "2930f56b548cbc83ffb0f6c4435427dc4ef52193073bde64dd0451552d23b941",
+    "emulator_target": "xyz.aethersx2.cpink02/xyz.aethersx2.android.EmulationActivity",
+    "launcher_icon_added": true,
+    "launcher_entry_reason": "Daijisho 1.5.0 requires a MAIN/LAUNCHER entry during player detection."
+  },
+  "host_checks": {
+    "shared_regressions": "passed",
+    "nonframegen_regressions": "passed",
+    "graphics_xml_both_variants": "passed"
+  },
+  "retained_libraries": {
+    "libemucore.so": "a42535ed6d9a77fdb577209d72df9ef5f2e90328f18417198f814eebcd6a45f9",
+    "liblsfg-android.so": "7f56c157821d0e66d3fe5dbcca4ccc8d0ed0998e8d42f32bffbe1dee6787051d"
+  },
+  "device_checks": {
+    "device": "Retroid Pocket Nova",
+    "game": "Ultimate Spider-Man (USA)",
+    "4_3_resolution_change": "Final APK: 1.5x to 2x; live framegen and aqua OSD recovered at 1024x896 capture after resume.",
+    "widescreen_resolution_change": "Final APK: 2x to 1.5x; live framegen and aqua OSD recovered at 768x672 capture, 16:9 output.",
+    "fps_toggle": "Final APK: ON displays the aqua Source FPS / Display FPS overlay; OFF hides it while gameplay continues. Original OFF preference restored.",
+    "contract_launch": "Existing Daijisho player component with content URI booted Pink successfully",
+    "daijisho_ui_launch": "Daijisho 1.5.0 player 54 - ps2 - NetherSX2 Turnip selected and saved; selecting Ultimate Spider-Man opened Pink EmulationActivity and live framegen.",
+    "installed_build": "Final v26500800 FRAMEGEN",
+    "pause_menu_overlay": "Final APK: one hide transition during an 8-second pause-menu hold, replacing the previous repeated hide/raise loop.",
+    "installed_apk_hashes": "Installed Pink and connector APK SHA-256 values match the release artifacts.",
+    "save_preservation": {
+      "original_save_states_and_memory_cards": 8,
+      "byte_identical_after_install_and_tests": true,
+      "new_save_files": 0,
+      "all_backed_up_config_and_save_files_unchanged": 15
+    },
+    "restored_settings": "IR 1.5x, widescreen OFF, Show FPS OFF, 60 FPS mode ON, framegen ON; original backed-up configuration files are byte-identical.",
+    "exit": "Exit Game returned to Daijisho; native framegen stopped; no app-fatal exception observed in the captured final process log."
+  },
+  "limits": [
+    "Functional launch, settings and intro/attract-mode checks; no sustained interactive gameplay benchmark.",
+    "Large background file transfer was active on Nova during testing.",
+    "Thor and reported Android 14 / Snapdragon 8 Gen 1 crash not tested.",
+    "Xenosaga Episode I stale-image report remains unresolved."
+  ]
+}

@@ -7,7 +7,20 @@ import android.util.Log;
 
 /** Runs early at app start — wires VulkanShim settings without replacing Application. */
 public class ShimInitProvider extends ContentProvider {
-    private static final java.util.Set<Integer> layoutHooked = new java.util.HashSet<>();
+    private static final java.util.Map<Activity, Runnable> settingsRefreshes = new java.util.WeakHashMap<>();
+    private static final java.util.Map<Activity, android.view.ViewTreeObserver.OnGlobalLayoutListener> layoutHooks = new java.util.WeakHashMap<>();
+
+    private static void refreshSettingsSoon(Activity activity) {
+        if (settingsRefreshes.containsKey(activity)) return;
+        Runnable refresh = () -> {
+            settingsRefreshes.remove(activity);
+            if (activity.isFinishing() || activity.isDestroyed()) return;
+            if (ShimTheme.isSettingsActivity(activity) || PrefCompat.hasVisiblePreferenceUi(activity))
+                ShimSettingsBridge.hook(activity);
+        };
+        settingsRefreshes.put(activity, refresh);
+        activity.getWindow().getDecorView().postDelayed(refresh, 200L);
+    }
 
     @Override
     public boolean onCreate() {
@@ -125,8 +138,8 @@ public class ShimInitProvider extends ContentProvider {
                     if (isEmu(activity) && FramegenBuild.AVAILABLE) {
                         ShimSurfaceScale.applyEarly(activity);
                         ShimFrameGen.attachOsdIfEnabled(activity);
-                        if (ShimFrameGen.prepare(activity))
-                            ShimFrameGen.attachOverlay(activity);
+                        // Shader probing belongs on the existing prepare worker.
+                        // onEmulationResumed starts it after the game view is ready.
                     }
                 }
                 @Override public void onActivityStarted(Activity activity) {}
@@ -139,26 +152,21 @@ public class ShimInitProvider extends ContentProvider {
                     }
                     TurnipConfig.forceGraphicsListPrefsAsStrings(activity);
                     ShimSettingsBridge.hook(activity);
-                    ToggleWatchdog.pollActivity(activity);
                     android.view.View decor = activity.getWindow().getDecorView();
                     decor.post(() -> {
                         ShimSettingsBridge.hook(activity);
-                        ToggleWatchdog.pollActivity(activity);
                     });
                     decor.postDelayed(() -> {
                         ShimSettingsBridge.hook(activity);
-                        ToggleWatchdog.pollActivity(activity);
                     }, 300);
                     decor.postDelayed(() -> {
                         ShimSettingsBridge.hook(activity);
-                        ToggleWatchdog.pollActivity(activity);
                     }, 1000);
-                    int id = System.identityHashCode(activity);
-                    if (layoutHooked.add(id)) {
-                        decor.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
-                            ShimSettingsBridge.hook(activity);
-                            ToggleWatchdog.pollActivity(activity);
-                        });
+                    if (!layoutHooks.containsKey(activity)) {
+                        android.view.ViewTreeObserver.OnGlobalLayoutListener listener =
+                                () -> refreshSettingsSoon(activity);
+                        layoutHooks.put(activity, listener);
+                        decor.getViewTreeObserver().addOnGlobalLayoutListener(listener);
                     }
                 }
                 @Override public void onActivityPaused(Activity activity) {
@@ -179,7 +187,12 @@ public class ShimInitProvider extends ContentProvider {
                         if (FramegenBuild.AVAILABLE)
                             ShimFrameGen.onEmulationDestroyed(activity);
                     }
-                    layoutHooked.remove(System.identityHashCode(activity));
+                    Runnable refresh = settingsRefreshes.remove(activity);
+                    android.view.View decor = activity.getWindow().getDecorView();
+                    if (refresh != null) decor.removeCallbacks(refresh);
+                    android.view.ViewTreeObserver.OnGlobalLayoutListener listener = layoutHooks.remove(activity);
+                    if (listener != null && decor.getViewTreeObserver().isAlive())
+                        decor.getViewTreeObserver().removeOnGlobalLayoutListener(listener);
                 }
             });
         }

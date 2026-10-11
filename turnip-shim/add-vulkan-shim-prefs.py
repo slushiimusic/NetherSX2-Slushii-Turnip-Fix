@@ -56,7 +56,7 @@ LOWEND_PREFS = [
     ("VulkanShim/LowEndPerf",
      "Low-End Performance",
      # Length-capped by the binary XML string pool -- keep under ~120 chars.
-     "Lighter GS for SD865-class handhelds: Basic blending, Partial preload, no aniso, lighter OSD.",
+     "Reduces graphics work on slower devices. May change effects; does not raise the game's FPS limit.",
      False),
 ]
 
@@ -64,7 +64,7 @@ DRIVER_PREFS = [
     ("VulkanShim/Driver",
      "Turnip Driver",
      # Length-capped by the binary XML string pool -- keep under ~120 chars.
-     "Swap the Turnip GPU driver. Pick a bundled build or download one. Needs a full app restart.",
+     "Change only if a game has graphics problems. Restart the app after choosing a driver.",
      False),
 ]
 
@@ -72,8 +72,7 @@ FRAMEGEN_PREFS = [
     ("VulkanShim/Lsfg",
      "Frame Generation",
      # Length-capped by the binary XML string pool — keep under ~120 chars.
-     "Doubles displayed frame rate via Lossless Scaling. Needs your own "
-     "Lossless.dll. Costs GPU and adds latency.",
+     "Adds smoothness, not game speed. Needs your Lossless.dll. Turn off if play gets slower or distorted.",
      False),
 ]
 
@@ -526,6 +525,9 @@ def main():
         print("injecting VulkanShim/BugReport row")
     for key, title, summary, default in prefs:
         data = insert_switch(data, key, title, summary, default, tracker)
+    if os.environ.get("NETHER_PINK_LAUNCHER_BRANDING") == "1":
+        data = insert_switch(data, "EmuCore/GS/OsdShowFPS", "Show FPS",
+                             "Show the frame rate during gameplay.", True, tracker)
     validate_tree(data)
     open(dst, "wb").write(data)
     print(dst, len(data), "bytes (was %d)" % len(open(src, "rb").read()))
