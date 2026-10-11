@@ -110,11 +110,132 @@
     }
   },
   "limits": [
-    "All samples were collected while a large background ROM transfer to the SD card remained active.",
+    "Initial pacing_samples were collected while a large background ROM transfer was active; pacing_followup separately labels the controlled transfer-paused samples.",
     "SurfaceFlinger timestamps measure buffer presentation, not unique simulated game frames.",
     "Short stationary-scene and camera-pan checks are not a sustained traversal benchmark.",
     "Isolated missed refreshes remain; no locked-60 or causal before/after performance claim.",
     "Host VSync trial did not eliminate outliers; original OFF setting restored.",
     "Thor, other games and framegen-ON gameplay not physically retested with this build."
-  ]
+  ],
+  "pacing_followup": {
+    "date_utc": "2026-10-11",
+    "scope": "Same installed APK; Nova, Ultimate Spider-Man rooftop, 4:3, IR 1.5x, framegen OFF, Host VSync OFF, Skip Presenting Duplicate Frames ON. Controlled camera pan and stationary checks.",
+    "copy_control": "User-authorized brief pause of the transfer parent and its exact remote SHA-256 verifier, with finally and independent timed resume safeguards. Both processes resumed after each sample.",
+    "settings_trials": {
+      "baseline": {
+        "sync_to_host": false,
+        "threaded_presentation": false
+      },
+      "sync_on": {
+        "sync_to_host": true,
+        "threaded_presentation": false
+      },
+      "threaded_on": {
+        "sync_to_host": true,
+        "threaded_presentation": true
+      },
+      "vsync_combo": {
+        "sync_to_host": true,
+        "threaded_presentation": true,
+        "host_vsync": true
+      }
+    },
+    "samples": {
+      "clean-comparison-copy-active-pan": {
+        "count": 2634,
+        "seconds": 43.972492952,
+        "median_ms": 16.67526,
+        "p99_ms": 16.677708,
+        "over25ms": 3,
+        "max_ms": 50.027239
+      },
+      "clean-comparison-copy-paused-pan": {
+        "count": 2663,
+        "seconds": 44.439778265,
+        "median_ms": 16.6753645,
+        "p99_ms": 16.678229,
+        "over25ms": 2,
+        "max_ms": 50.025207
+      },
+      "clean-comparison-copy-paused-static": {
+        "count": 2661,
+        "seconds": 44.373701181,
+        "median_ms": 16.675625,
+        "p99_ms": 16.678698,
+        "over25ms": 1,
+        "max_ms": 33.352968
+      },
+      "sync-on-clean-comparison-copy-paused-pan": {
+        "count": 2661,
+        "seconds": 44.388584098,
+        "median_ms": 16.674948,
+        "p99_ms": 16.677604,
+        "over25ms": 1,
+        "max_ms": 50.028073
+      },
+      "sync-on-clean-comparison-copy-paused-static": {
+        "count": 2657,
+        "seconds": 44.29106665,
+        "median_ms": 16.67573,
+        "p99_ms": 16.679166,
+        "over25ms": 0,
+        "max_ms": 16.683646
+      },
+      "threaded-on-clean-comparison-copy-paused-pan": {
+        "count": 2658,
+        "seconds": 44.305151962,
+        "median_ms": 16.674948,
+        "p99_ms": 16.677656,
+        "over25ms": 0,
+        "max_ms": 16.678854
+      },
+      "threaded-on-clean-comparison-copy-paused-static": {
+        "count": 2659,
+        "seconds": 44.324650713,
+        "median_ms": 16.675989,
+        "p99_ms": 16.678803,
+        "over25ms": 0,
+        "max_ms": 16.680364
+      },
+      "threaded-sync-on-copy-active-repeat": {
+        "count": 5561,
+        "seconds": 92.784481579,
+        "median_ms": 16.675885,
+        "p99_ms": 16.678749,
+        "over25ms": 3,
+        "max_ms": 50.021822
+      },
+      "threaded-long-clean-comparison-copy-paused-pan": {
+        "count": 6554,
+        "seconds": 109.332727822,
+        "median_ms": 16.67677,
+        "p99_ms": 16.679479,
+        "over25ms": 3,
+        "max_ms": 33.355416
+      },
+      "vsync-combo-long-clean-comparison-copy-paused-pan": {
+        "count": 6553,
+        "seconds": 109.280062562,
+        "median_ms": 16.676302,
+        "p99_ms": 16.679322,
+        "over25ms": 1,
+        "max_ms": 33.357396
+      }
+    },
+    "interpretation": "Hitches occurred with the transfer paused, so it is not the sole cause. Short zero-outlier samples did not hold across longer tests. The combined timing settings produced the best longer sample but occasional misses remain; settings trials are not a randomized causal benchmark.",
+    "transfer_active_repeat": "A longer 92.78-second moving sample with both settings ON and transfer active still contained three intervals over 25 ms, maximum 50.02 ms.",
+    "longer_clean_repeat": "A 109.33-second moving sample with Sync To Host Refresh Rate and Threaded Presentation ON, Host VSync OFF and transfer paused still had three intervals over 25 ms, maximum 33.36 ms. The zero-outlier short sample did not establish a lock.",
+    "sampling_note": "Each sample includes approximately two seconds of SurfaceFlinger rolling history; these are buffer timestamps, not a count of unique simulated frames.",
+    "final_choice": "On Nova only, retained Sync To Host Refresh Rate, Host VSync and Threaded Presentation ON. Framegen OFF. The all-three-ON trial had one 33.36 ms interval in 109.28 seconds; this is the most consistent longer tested sample, not proof of a universal or sustained lock. No APK or shipped defaults changed in this follow-up.",
+    "preservation": "Eight original save/card files, the added session backup and seven external configs match their prior SHA-256 hashes. Only the three tested timing preferences are intentionally retained; temporary controls and FPS visibility are restored.",
+    "final_checks": {
+      "installed_version": 26500801,
+      "framegen_config": "lsfg=off, lsfg_overlay=off, fg_osd=off",
+      "fps_osd": "ON visible, approximately 60 FPS (captured 60.03); OFF and touchscreen None restored",
+      "original_files_and_session_backup_verified": 16,
+      "preservation_differences": 0,
+      "fatal_signatures_in_captured_process_log": 0,
+      "transfer_resumed_and_progressed": true
+    }
+  }
 }
